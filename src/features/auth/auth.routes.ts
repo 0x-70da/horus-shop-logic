@@ -1,8 +1,8 @@
 import { Router, Router as ExpressRouter } from "express";
-import { getProfile } from "./auth.controller.js";
 
 const router: ExpressRouter = Router();
 
-router.get("/profile", getProfile);
+router.post("/register", (await import("./auth.controller.js")).register);
+router.post("/login", (await import("./auth.controller.js")).login);
 
 export default router;
