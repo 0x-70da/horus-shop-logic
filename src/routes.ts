@@ -8,4 +8,5 @@ const router: ExpressRouter = Router();
 // router.use("/auth", authRoutes);
 // router.use("/products", productRoutes);
 router.use("/auth", (await import("./features/auth/auth.routes.js")).default);
+router.use("/users", (await import("./features/users/users.routes.js")).default);
 export default router;
