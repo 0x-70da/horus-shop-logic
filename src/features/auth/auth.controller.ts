@@ -1,5 +1,8 @@
 import type { Request, Response } from "express";
 import { supabase } from "../../config/supabase.js";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+dotenv.config();
 
 export const register = async (req: Request, res: Response) => {
     const {firstName, lastName, email, password} = req.body;
@@ -31,12 +34,14 @@ export const login = async (req: Request, res: Response) => {
         password,
     });
 
-    if(error || !data.session) {
+    if(error) {
         return res.status(401).json({message: "Invalid email or password"});
     }
 
+    const token = jwt.sign({ id: data.user.id, role: data.user.role?? "USER" }, process.env.JWT_SECRET!, { expiresIn: "1h" });
+
     return res.json({
         user: data.user,
-        session: data.session,
+        token,
     })
 }
