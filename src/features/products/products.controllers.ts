@@ -1,0 +1,29 @@
+import type { Request, Response } from "express";
+import { supabase } from "../../config/supabase.js";
+
+export const getAllProducts = async (req: Request, res: Response) => {
+
+    const { data, error } = await supabase.from("products").select("*");
+
+    if(error) {
+        return res.status(500).json({ message: error.message });
+    }
+
+    return res.status(200).json(data);
+}
+
+export const getProductBySlug = async (req: Request, res: Response) => {
+    const { slug } = req.params;
+
+    const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("slug", slug)
+    .single();
+
+    if(error) {
+        return res.status(404).json({ message: "Product Not Found" });
+    }
+
+    return res.status(200).json(data);
+}
