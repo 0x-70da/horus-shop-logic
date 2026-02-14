@@ -6,5 +6,6 @@ router.use("/products", (await import("./features/products/products.routes.js"))
 router.use("/auth", (await import("./features/auth/auth.routes.js")).default);
 router.use("/users", (await import("./features/users/users.routes.js")).default);
 router.use("/cart", (await import("./features/cart/cart.routes.js")).default);
+router.use("/wishlist", (await import("./features/wishlist/wishlist.routes.js")).default);
 
 export default router;
