@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import type { Response } from "express";
 import { supabase } from "../../config/supabase.js";
 import type { User } from "../users/users.types.js";
 import jwt from "jsonwebtoken";
