@@ -22,15 +22,15 @@ export const register = async (req: RegisterRequest, res: Response) => {
 
     const hashed = await bcrypt.hash(password, 10);
 
-    const { error } = await supabase.from("users").insert({
+    const { error: insertError } = await supabase.from("users").insert({
         email,
         password: hashed,
         first_name: firstName,
         last_name: lastName,
     });
 
-    if(error) {
-        return res.status(500).json({success: false, message: error.message});
+    if(insertError) {
+        return res.status(500).json({success: false, message: insertError.message});
     }
 
     return res.status(201).json({success: true, message: "User registered successfully"});
