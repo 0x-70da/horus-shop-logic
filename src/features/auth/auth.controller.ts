@@ -22,12 +22,19 @@ export const register = async (req: RegisterRequest, res: Response) => {
 
     const hashed = await bcrypt.hash(password, 10);
 
-    await supabase.from("users").insert({
+    const { error: insertError } = await supabase.from("users").insert({
         email,
         password: hashed,
         first_name: firstName,
         last_name: lastName,
     });
+
+    if (insertError) {
+        if (insertError.code === "23505") {
+            return res.status(400).json({success: false, message: "User already exists"});
+        }
+        return res.status(500).json({success: false, message: "Internal Server Error"});
+    }
 
     return res.status(201).json({success: true, message: "User registered successfully"});
 }
