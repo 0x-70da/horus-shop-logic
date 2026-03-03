@@ -17,5 +17,4 @@ interface LoginRequest extends Request {
 }
 
 
-
 export type { RegisterRequest, LoginRequest };
