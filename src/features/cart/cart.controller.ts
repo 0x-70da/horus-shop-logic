@@ -100,10 +100,14 @@ export const updateCartItem = async (req: CartRequest, res: Response) => {
     .eq("user_id", userId)
     .select()
 
-    if (error || !data || data.length === 0) {
-        return res.status(400).json({success: false, message: "Cannot update cart item: " + error?.message });
+    if (error) {
+        const message = "Cannot update cart item" + (error.message ? ": " + error.message : "");
+        return res.status(400).json({ success: false, message });
     }
 
+    if (!data || data.length === 0) {
+        return res.status(404).json({ success: false, message: "Cart item not found" });
+    }
     res.status(200).json({success: true, data });
 }
 
