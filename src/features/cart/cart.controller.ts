@@ -1,7 +1,13 @@
+import type { Response } from "express";
 import { supabase } from "../../config/supabase.js"
+import type { CartRequest } from "./cart.types.js";
 
-export const getCart = async (req: any, res: any) => {
-    const userId = req.user.id;
+export const getCart = async (req: CartRequest, res: Response) => {
+    const userId = req.user?.id;
+
+    if(!userId) {
+        return res.status(401).json({success: false, message: "Unauthorized" });
+    }
 
     const { data, error } = await supabase
         .from("cart_items")
@@ -19,24 +25,37 @@ export const getCart = async (req: any, res: any) => {
         .eq("user_id", userId);
 
     if (error) {
-        return res.status(400).json({ error: error.message });
+        return res.status(400).json({success: false, message: "Cannot get cart: " + error.message });
     }
 
-    res.status(200).json(data);
+    res.status(200).json({success: true, data });
 }
 
-export const addToCart = async (req: any, res: any) => {
-    const userId = req.user.id;
+export const addToCart = async (req: CartRequest, res: Response) => {
+    const userId = req.user?.id;
+
+    if(!userId) {
+        return res.status(401).json({success: false, message: "Unauthorized" });
+    }
+
     const { productId, quantity } = req.body;
 
-    const { data: product } = await supabase
+    if(!productId || !quantity || quantity <= 0) {
+        return res.status(400).json({success: false, message: "Product ID and quantity are required" });
+    }
+
+    const { data: product, error: productError } = await supabase
         .from("products")
         .select("stock")
         .eq("id", productId)
         .single();
 
+    if (productError) {
+        return res.status(400).json({success: false, message: "Cannot get product: " + productError.message });
+    }
+
     if (!product || product.stock < quantity) {
-    return res.status(400).json({ message: "Not enough stock" });
+    return res.status(400).json({success: false, message: "Not enough stock" });
   }
 
   // insert or update
@@ -54,16 +73,25 @@ export const addToCart = async (req: any, res: any) => {
     .single();
 
   if (error) {
-    return res.status(400).json({ message: error.message });
+    return res.status(400).json({success: false, message: "Cannot add to cart: " + error.message });
   }
 
-  res.status(201).json(data);
+  res.status(201).json({success: true, data });
 }
 
-export const updateCartItem = async (req: any, res: any) => {
-    const userId = req.user.id;
+export const updateCartItem = async (req: CartRequest, res: Response) => {
+    const userId = req.user?.id;
+
+    if(!userId) {
+        return res.status(401).json({success: false, message: "Unauthorized" });
+    }
+
     const itemId = req.params.itemId;
     const { quantity } = req.body;
+
+    if(!itemId || !quantity || quantity <= 0) {
+        return res.status(400).json({success: false, message: "Item ID and quantity are required" });
+    }
 
     const { data, error } = await supabase
     .from("cart_items")
@@ -71,18 +99,30 @@ export const updateCartItem = async (req: any, res: any) => {
     .eq("id", itemId)
     .eq("user_id", userId)
     .select()
-    .single();
 
     if (error) {
-        return res.status(400).json({ message: error.message });
+        const message = "Cannot update cart item" + (error.message ? ": " + error.message : "");
+        return res.status(400).json({ success: false, message });
     }
 
-    res.status(200).json(data);
+    if (!data || data.length === 0) {
+        return res.status(404).json({ success: false, message: "Cart item not found" });
+    }
+    res.status(200).json({success: true, data });
 }
 
-export const removeFromCart = async (req: any, res: any) => {
-    const userId = req.user.id;
+export const removeFromCart = async (req: CartRequest, res: Response) => {
+    const userId = req.user?.id;
+
+    if(!userId) {
+        return res.status(401).json({success: false, message: "Unauthorized" });
+    }
+
     const itemId = req.params.itemId;
+
+    if(!itemId) {
+        return res.status(400).json({success: false, message: "Item ID is required" });
+    }
 
     const { error } = await supabase
     .from("cart_items")
@@ -91,14 +131,18 @@ export const removeFromCart = async (req: any, res: any) => {
     .eq("user_id", userId);
 
     if (error) { 
-        return res.status(400).json({ message: error.message });
+        return res.status(400).json({success: false, message: error.message });
     }
 
-    res.json({ message: "Item removed" });
+    res.json({success: true, message: "Item removed" });
 }
 
-export const clearCart = async (req: any, res: any) => {
-    const userId = req.user.id;
+export const clearCart = async (req: CartRequest, res: Response) => {
+    const userId = req.user?.id;
+
+    if(!userId) {
+        return res.status(401).json({success: false, message: "Unauthorized" });
+    }
 
     const { error } = await supabase
     .from("cart_items")
@@ -106,8 +150,8 @@ export const clearCart = async (req: any, res: any) => {
     .eq("user_id", userId);
 
     if (error) {
-        return res.status(400).json({ message: error.message });
+        return res.status(400).json({success: false, message: error.message });
     }
 
-    res.json({ message: "Cart cleared" });
+    res.json({success: true, message: "Cart cleared" });
 }
