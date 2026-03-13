@@ -10,7 +10,7 @@ export const getWishlist = async (req: WishListRequest, res: Response) => {
     }
 
     const { data: wishlistItems, error } = await supabase
-    .from("wishlist")
+    .from("wishlist_items")
     .select("id, product_id, products(name, price, images)")
     .eq("user_id", userId);
 
@@ -40,7 +40,7 @@ export const addToWishlist = async (req: WishListRequest, res: Response) => {
     }
 
     const { data: wishlistItem, error } = await supabase
-    .from("wishlist")
+    .from("wishlist_items")
     .insert({ user_id: userId, product_id: productId })
     .select()
     .single();
@@ -67,7 +67,7 @@ export const removeFromWishlist = async (req: WishListRequest, res: Response) =>
     }
 
     const { error } = await supabase
-    .from("wishlist")
+    .from("wishlist_items")
     .delete()
     .eq("product_id", productId)
     .eq("user_id", userId);
