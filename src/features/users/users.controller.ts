@@ -65,7 +65,7 @@ export const getAllUsers = async (req: UserRequest, res: Response) => {
         return res.status(500).json({success: false, message: "Error fetching all users"});
     }
 
-    if(!users) {
+    if (!users || users.length === 0) {
         return res.status(404).json({success: false, message: "No users found"});
     }
 
