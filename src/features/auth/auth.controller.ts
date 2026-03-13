@@ -9,13 +9,13 @@ dotenv.config();
 export const register = async (req: Request<{}, {}, RegisterBody, {}>, res: Response) => {
     const { firstName, lastName, email, password } = req.body;
 
-    const { data: user, error: selectError } = await supabase.from("users").select("*").eq("email", email);
+    const { data: existingUsers, error: selectError } = await supabase.from("users").select("id").eq("email", email);
 
     if(selectError) {
         return res.status(500).json({success: false, message: `Internal Server Error`});
     }
     
-    if(user && user.length > 0) {
+    if(existingUsers && existingUsers.length > 0) {
         return res.status(400).json({success: false, message: "User already exists"});
     }
 
