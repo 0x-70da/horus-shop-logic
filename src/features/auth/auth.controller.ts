@@ -1,22 +1,21 @@
-import type { Response } from "express";
+import type { Request, Response } from "express";
 import { supabase } from "../../config/supabase.js";
-import type { User } from "../users/users.types.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
-import type { LoginRequest, RegisterRequest } from "./auth.types.js";
+import type { RegisterBody, LoginBody } from "./auth.types.js";
 dotenv.config();
 
-export const register = async (req: RegisterRequest, res: Response) => {
+export const register = async (req: Request<{}, {}, RegisterBody, {}>, res: Response) => {
     const { firstName, lastName, email, password } = req.body;
 
-    const { data, error: selectError } = await supabase.from("users").select("*").eq("email", email);
+    const { data: user, error: selectError } = await supabase.from("users").select("*").eq("email", email);
 
     if(selectError) {
         return res.status(500).json({success: false, message: `Internal Server Error`});
     }
-
-    if(data && data.length > 0) {
+    
+    if(user && user.length > 0) {
         return res.status(400).json({success: false, message: "User already exists"});
     }
 
@@ -36,11 +35,10 @@ export const register = async (req: RegisterRequest, res: Response) => {
     return res.status(201).json({success: true, message: "User registered successfully"});
 }
 
-export const login = async (req: LoginRequest, res: Response) => {
+export const login = async (req: Request<{}, {}, LoginBody, {}>, res: Response) => {
     const { email, password } = req.body;
 
-    const { data, error } = await supabase.from("users").select("*").eq("email", email).single();
-    const user = data as User;
+    const { data: user, error } = await supabase.from("users").select("*").eq("email", email).single();
 
     if(error || !user) {
         return res.status(401).json({success: false, message: "Invalid email or password"});
