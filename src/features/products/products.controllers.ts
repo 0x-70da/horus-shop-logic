@@ -49,5 +49,5 @@ export const getProductsByCategory = async (req: Request<{slug: string}>, res: R
         return res.status(404).json({success: false, message: "No products found for this category" });
     }
 
-    res.status(200).json({success: true, data: products });
+    return res.status(200).json({success: true, data: products });
 }
