@@ -77,5 +77,5 @@ export const removeFromWishlist = async (req: WishListRequest, res: Response) =>
         return res.status(400).json({ success: false, message: "Failed to remove item from wishlist" });
     }
 
-    res.status(204).json({ success: true, message: "Item removed from wishlist" });
+    res.status(200).json({ success: true, message: "Item removed from wishlist" });
 }
