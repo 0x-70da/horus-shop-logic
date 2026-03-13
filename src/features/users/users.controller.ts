@@ -1,24 +1,42 @@
 import { supabase } from "../../config/supabase.js";
-import type { Request, Response } from "express";
+import type { Response } from "express";
+import type { UserRequest } from "./users.types.js";
 
-export const getProfile = async (req: any, res: any) => {
-  const userId = req.user.id;
+export const getProfile = async (req: UserRequest, res: Response) => {
+  const userId = req.user?.id;
 
-  const { data } = await supabase
+  if(!userId) {
+    return res.status(401).json({success: false, message: "Unauthorized" });
+  }
+
+  const { data: user, error } = await supabase
     .from("users")
     .select("*")
     .eq("id", userId)
     .single();
 
-  res.json(data);
+  if(error) {
+    console.log("Error fetching user profile:", error);
+    return res.status(500).json({success: false, message: "Error fetching user profile"});
+  }
+
+  if(!user) {
+    return res.status(404).json({success: false, message: "User not found"});
+  }
+
+  res.json({success: true, data: user});
 };
 
-export const updateProfile = async (req: any, res: Response) => {
-    const userId = req.user.id;
+export const updateProfile = async (req: UserRequest, res: Response) => {
+    const userId = req.user?.id;
+
+    if(!userId) {
+        return res.status(401).json({success: false, message: "Unauthorized" });
+    }
 
     const updates = req.body;
 
-    const { data, error } = await supabase
+    const { data: user, error } = await supabase
     .from("users")
     .update(updates)
     .eq("id", userId)
@@ -26,20 +44,30 @@ export const updateProfile = async (req: any, res: Response) => {
     .single();
 
     if(error) {
-        return res.status(400).json({message: error.message});
+        console.log("Error updating user profile:", error);
+        return res.status(500).json({success: false, message: "Error updating user profile"});
     }
 
-    res.json(data);
+    if(!user) {
+        return res.status(404).json({success: false, message: "User not found"});
+    }
+
+    res.json({success: true, data: user});
 }
 
-export const getAllUsers = async (req: Request, res: Response) => {
-    const { data, error } = await supabase
+export const getAllUsers = async (req: UserRequest, res: Response) => {
+    const { data: users, error } = await supabase
     .from("users")
     .select("*");
 
     if(error) {
-        return res.status(400).json({message: error.message});
+        console.log("Error fetching all users:", error);
+        return res.status(500).json({success: false, message: "Error fetching all users"});
     }
 
-    res.json(data);
+    if(!users) {
+        return res.status(404).json({success: false, message: "No users found"});
+    }
+
+    res.json({success: true, data: users});
 }
