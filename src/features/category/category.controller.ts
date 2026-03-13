@@ -1,25 +1,17 @@
+import type { Request, Response } from "express";
 import { supabase } from "../../config/supabase.js";
 
-export const getAllCategories = async (req: any, res: any) => {
-    const { data, error } = await supabase.from("categories").select("*");
+export const getAllCategories = async (req: Request, res: Response) => {
+    const { data: categories, error } = await supabase.from("categories").select("*");
 
     if (error) {
-        return res.status(400).json({ error: error.message });
-    }
-    res.json(data);
-}
-
-export const getProductsByCategory = async (req: any, res: any) => {
-    const { slug } = req.params;
-
-    const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .eq("category_slug", slug);
-
-    if (error) {
-        return res.status(500).json({ error: error.message });
+        console.log("Error fetching categories:", error);
+        return res.status(400).json({success: false, message: "Failed to fetch categories"});
     }
 
-    res.json(data);
+    if(!categories || categories.length === 0) {
+        return res.status(404).json({success: false, message: "No categories found" });
+    }
+
+    res.status(200).json({success: true, data: categories });
 }
