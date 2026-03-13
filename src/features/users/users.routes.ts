@@ -4,11 +4,12 @@ import { authMiddleware } from "../../middlewares/auth.middleware.js";
 import { adminMiddleware } from "../../middlewares/admin.middleware.js";
 
 const router: ExpressRouter = Router();
+router.use(authMiddleware);
 
-router.get("/me", authMiddleware, getProfile);
-router.patch("/me", authMiddleware, updateProfile);
+router.get("/me", getProfile);
+router.patch("/me", updateProfile);
 
 // admin
-router.get("/", authMiddleware, adminMiddleware, getAllUsers);
+router.get("/", adminMiddleware, getAllUsers);
 
 export default router;
