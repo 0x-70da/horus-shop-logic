@@ -13,7 +13,7 @@ export const getProfile = async (req: UserRequest, res: Response) => {
     .from("users")
     .select("*")
     .eq("id", userId)
-    .single();
+    .maybeSingle();
 
   if(error) {
     console.log("Error fetching user profile:", error);
@@ -41,7 +41,7 @@ export const updateProfile = async (req: UserRequest, res: Response) => {
     .update(updates)
     .eq("id", userId)
     .select()
-    .single();
+    .maybeSingle();
 
     if(error) {
         console.log("Error updating user profile:", error);
