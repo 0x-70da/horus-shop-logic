@@ -6,7 +6,8 @@
   "scripts": {
     "start": "tsx src/server.ts",
     "dev": "tsx watch src/server.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "gen-types": "pnpm dlx supabase gen types typescript --project-id firnqeovhputapevfwnh --schema public > src/types/database.types.ts"
   },
   "type": "module",
   "keywords": [],
