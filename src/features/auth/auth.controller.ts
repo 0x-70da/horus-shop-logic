@@ -38,7 +38,11 @@ export const register = async (req: Request<{}, {}, RegisterBody, {}>, res: Resp
 export const login = async (req: Request<{}, {}, LoginBody, {}>, res: Response) => {
     const { email, password } = req.body;
 
-    const { data: user, error } = await supabase.from("users").select("*").eq("email", email).single();
+    const { data: user, error } = await supabase
+        .from("users")
+        .select("id, password, role")
+        .eq("email", email)
+        .single();
 
     if(error || !user) {
         return res.status(401).json({success: false, message: "Invalid email or password"});
