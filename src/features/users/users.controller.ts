@@ -71,7 +71,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
   try {
     const { data: users, error } = await supabase
     .from("users")
-    .select("*");
+    .select("avatar, created_at, email, first_name, id, last_name, phone, role");
 
     if(error) {
         return res.status(500).json({success: false, message: "Error fetching all users"});
