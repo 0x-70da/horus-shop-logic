@@ -25,7 +25,7 @@ export const getCart = async (req: Request, res: Response) => {
             .eq("user_id", userId);
     
         if (error) {
-            return res.status(400).json({success: false, message: "Cannot get cart: " + error.message });
+            return res.status(400).json({success: false, message: "Cannot Get Cart"});
         }
     
         res.status(200).json({success: true, data });
@@ -56,7 +56,7 @@ export const addToCart = async (req: Request<{}, {}, { productId: string; quanti
             .single();
     
         if (productError) {
-            return res.status(400).json({success: false, message: "Cannot get product: " + productError.message });
+            return res.status(400).json({success: false, message: "Cannot Get Product"});
         }
     
         if (!product || product.stock < quantity) {
