@@ -48,7 +48,7 @@ export const updateProfile = async (req: Request, res: Response) => {
     .from("users")
     .update({ avatar, email, first_name, last_name, phone, password: hashed })
     .eq("id", userId)
-    .select()
+    .select("avatar, created_at, email, first_name, id, last_name, phone, role")
     .maybeSingle();
 
     if(error) {
