@@ -7,7 +7,7 @@ export const getAllCategories = async (req: Request, res: Response) => {
     
         if (error) {
             console.log("Error fetching categories:", error);
-            return res.status(400).json({success: false, message: "Failed to fetch categories"});
+            return res.status(500).json({success: false, message: "Failed to fetch categories"});
         }
     
         if(!categories || categories.length === 0) {
