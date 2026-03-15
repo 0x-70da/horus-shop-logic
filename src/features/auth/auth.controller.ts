@@ -49,9 +49,13 @@ export const login = async (req: Request<{}, {}, LoginBody, {}>, res: Response) 
             .from("users")
             .select("id, password, role")
             .eq("email", email)
-            .single();
+            .maybeSingle();
     
-        if(error || !user) {
+        if (error) {
+            return res.status(500).json({success: false, message: "Internal Server Error"});
+        }
+
+        if (!user) {
             return res.status(401).json({success: false, message: "Invalid email or password"});
         }
     
