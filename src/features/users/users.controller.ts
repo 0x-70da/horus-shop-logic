@@ -1,5 +1,6 @@
 import { supabase } from "../../config/supabase.js";
 import type { Request, Response } from "express";
+import bcrypt from "bcrypt";
 
 export const getProfile = async (req: Request, res: Response) => {
   try {
@@ -41,9 +42,11 @@ export const updateProfile = async (req: Request, res: Response) => {
 
     const { avatar, email, first_name, last_name, phone, password } = req.body;
 
+    const hashed = await bcrypt.hash(password, 10);
+
     const { data: user, error } = await supabase
     .from("users")
-    .update({ avatar, email, first_name, last_name, phone, password })
+    .update({ avatar, email, first_name, last_name, phone, password: hashed })
     .eq("id", userId)
     .select()
     .maybeSingle();
