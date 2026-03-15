@@ -1,50 +1,54 @@
 import { supabase } from "../../config/supabase.js";
-import type { Response } from "express";
-import type { UserRequest } from "./users.types.js";
+import type { Request, Response } from "express";
 
-export const getProfile = async (req: UserRequest, res: Response) => {
-  const userId = req.user?.id;
+export const getProfile = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+  
+    if(!userId) {
+      return res.status(401).json({success: false, message: "Unauthorized" });
+    }
+  
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("avatar, created_at, email, first_name, id, last_name, phone, role")
+      .eq("id", userId)
+      .maybeSingle();
+  
+    if(error) {
+      return res.status(500).json({success: false, message: "Error fetching user profile"});
+    }
+  
+    if(!user) {
+      return res.status(404).json({success: false, message: "User not found"});
+    }
+  
+    res.json({success: true, data: user});
 
-  if(!userId) {
-    return res.status(401).json({success: false, message: "Unauthorized" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 
-  const { data: user, error } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", userId)
-    .maybeSingle();
+}
 
-  if(error) {
-    console.log("Error fetching user profile:", error);
-    return res.status(500).json({success: false, message: "Error fetching user profile"});
-  }
-
-  if(!user) {
-    return res.status(404).json({success: false, message: "User not found"});
-  }
-
-  res.json({success: true, data: user});
-};
-
-export const updateProfile = async (req: UserRequest, res: Response) => {
+export const updateProfile = async (req: Request, res: Response) => {
+  try {
     const userId = req.user?.id;
 
     if(!userId) {
         return res.status(401).json({success: false, message: "Unauthorized" });
     }
 
-    const updates = req.body;
+    const { avatar, email, first_name, last_name, phone, password } = req.body;
 
     const { data: user, error } = await supabase
     .from("users")
-    .update(updates)
+    .update({ avatar, email, first_name, last_name, phone, password })
     .eq("id", userId)
     .select()
     .maybeSingle();
 
     if(error) {
-        console.log("Error updating user profile:", error);
         return res.status(500).json({success: false, message: "Error updating user profile"});
     }
 
@@ -53,15 +57,20 @@ export const updateProfile = async (req: UserRequest, res: Response) => {
     }
 
     res.json({success: true, data: user});
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+
 }
 
-export const getAllUsers = async (req: UserRequest, res: Response) => {
+export const getAllUsers = async (req: Request, res: Response) => {
+  try {
     const { data: users, error } = await supabase
     .from("users")
     .select("*");
 
     if(error) {
-        console.log("Error fetching all users:", error);
         return res.status(500).json({success: false, message: "Error fetching all users"});
     }
 
@@ -70,4 +79,9 @@ export const getAllUsers = async (req: UserRequest, res: Response) => {
     }
 
     res.json({success: true, data: users});
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+  
 }
