@@ -12,7 +12,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
 
     try {
         const decoded = verifyToken(token) as { id: string; role: string };
-        (req as any).user = {
+        req.user = {
             id: decoded.id,
             role: decoded.role,
         };
