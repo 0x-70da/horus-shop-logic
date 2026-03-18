@@ -24,7 +24,7 @@ export const getProfile = async (req: Request, res: Response) => {
       return res.status(404).json({success: false, message: "User not found"});
     }
   
-    res.json({success: true, data: user});
+    res.json({success: true, message: "Profile fetched successfully", data: user});
 
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -59,7 +59,7 @@ export const updateProfile = async (req: Request, res: Response) => {
         return res.status(404).json({success: false, message: "User not found"});
     }
 
-    res.json({success: true, data: user});
+    res.json({success: true, message: "Profile updated successfully", data: user});
 
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -81,7 +81,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
         return res.status(404).json({success: false, message: "No users found"});
     }
 
-    res.json({success: true, data: users});
+    res.json({success: true, message: "Users fetched successfully", data: users});
 
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal Server Error" });
