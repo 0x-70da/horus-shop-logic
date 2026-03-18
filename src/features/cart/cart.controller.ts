@@ -81,7 +81,7 @@ export const addToCart = async (req: Request<{}, {}, { productId: string; quanti
         return res.status(400).json({success: false, message: "Cannot add to cart" });
       }
     
-      res.status(201).json({success: true, data });
+      res.status(201).json({success: true, message: "Item added to cart", data });
 
     } catch (error) {
         res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -117,7 +117,7 @@ export const updateCartItem = async (req: Request<{itemId: string}, {}, { quanti
         if (!data || data.length === 0) {
             return res.status(404).json({ success: false, message: "Cart item not found" });
         }
-        res.status(200).json({success: true, data });
+        res.status(200).json({success: true, message: "Cart item updated", data });
     } catch (error) {
         res.status(500).json({ success: false, message: "Internal Server Error" });
     }
