@@ -9,7 +9,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
             return res.status(500).json({success: false, message: "Failed to fetch products: " + error.message });
         }
     
-        return res.status(200).json({success: true, data: products });
+        return res.status(200).json({success: true, message: "Products fetched successfully", data: products });
 
     } catch (error) {
         res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -36,7 +36,7 @@ export const getProductBySlug = async (req: Request<{ slug: string }>, res: Resp
             return res.status(404).json({success: false, message: "Product Not Found" });
         }
     
-        return res.status(200).json({success: true, data: product });
+        return res.status(200).json({success: true, message: "Product fetched successfully", data: product });
 
     } catch (error) {
         res.status(500).json({ success: false, message: "Internal Server Error" });
