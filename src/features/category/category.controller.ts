@@ -17,7 +17,7 @@ export const getAllCategories = async (req: Request, res: Response) => {
         res.status(200).json({success: true, data: categories });
         
     } catch (error) {
-        res.status(500).json({ success: false, message: "Internal Server Error" });
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 }
 
@@ -40,7 +40,7 @@ export const getProductsByCategory = async (req: Request<{slug: string}>, res: R
     
         return res.status(200).json({success: true, data: products });
     } catch (error) {
-        res.status(500).json({ success: false, message: "Internal Server Error" });
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
     
 }
