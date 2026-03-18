@@ -3,7 +3,7 @@ import { supabase } from "../../config/supabase.js";
 
 export const getAllCategories = async (req: Request, res: Response) => {
     try {
-        const { data: categories, error } = await supabase.from("categories").select("*");
+        const { data: categories, error } = await supabase.from("categories").select("*, sub_categories(*)");
     
         if (error) {
             console.log("Error fetching categories:", error);
