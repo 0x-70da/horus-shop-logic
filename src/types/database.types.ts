@@ -63,7 +63,6 @@ export type Database = {
       }
       cart_items: {
         Row: {
-          cart_id: string | null
           created_at: string | null
           id: string
           product_id: string | null
@@ -71,7 +70,6 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          cart_id?: string | null
           created_at?: string | null
           id?: string
           product_id?: string | null
@@ -79,7 +77,6 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          cart_id?: string | null
           created_at?: string | null
           id?: string
           product_id?: string | null
@@ -341,6 +338,38 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sub_categories: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          id: string
+          name: string | null
+          slug: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string | null
+          slug?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string | null
+          slug?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sub_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
             referencedColumns: ["id"]
           },
         ]
