@@ -21,7 +21,7 @@ export const getAllCategories = async (req: Request, res: Response) => {
     }
 }
 
-export const getProductsByCategory = async (req: Request<{slug: string}>, res: Response) => {
+export const getProductsByCategory = async (req: Request<{ slug: string }>, res: Response) => {
     try {
         const { slug } = req.params;
     
