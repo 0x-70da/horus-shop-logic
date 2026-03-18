@@ -23,7 +23,7 @@ export const getWishlist = async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, message: "Wishlist not found" });
         }
     
-        res.status(200).json({ success: true, data: wishlistItems });
+        res.status(200).json({ success: true, message: "Wishlist fetched successfully", data: wishlistItems });
 
     } catch (error) {
         res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -56,7 +56,7 @@ export const addToWishlist = async (req: Request<{}, {}, { productId: string }, 
             return res.status(400).json({ success: false, message: "Failed to add item to wishlist" });
         }
     
-        res.status(201).json({ success: true, data: wishlistItem });
+        res.status(201).json({ success: true, message: "Item added to wishlist", data: wishlistItem });
 
     } catch (error) {
         res.status(500).json({ success: false, message: "Internal Server Error" });
