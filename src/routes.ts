@@ -4,7 +4,7 @@ import authRouter from "./features/auth/auth.routes.js";
 import usersRouter from "./features/users/users.routes.js";
 import cartRouter from "./features/cart/cart.routes.js";
 import wishlistRouter from "./features/wishlist/wishlist.routes.js";
-import categoryRouter from "./features/category/category.routes.js";
+import categoryRouter from "./features/categories/categories.routes.js";
 
 const router: ExpressRouter = Router();
 
