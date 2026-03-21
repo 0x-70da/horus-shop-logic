@@ -1,17 +1,20 @@
 import type { Request, Response } from "express";
 import { supabase } from "../../config/supabase.js";
+import logger from "../../utils/logger.js";
 
 export const getAllProducts = async (req: Request, res: Response) => {
     try {
         const { data: products, error } = await supabase.from("products").select("*");
     
         if(error) {
+            logger("Error fetching products:", error);
             return res.status(500).json({success: false, message: "Failed to fetch products: " + error.message });
         }
     
         return res.status(200).json({success: true, message: "Products fetched successfully", data: products });
 
     } catch (error) {
+        logger("Error in getAllProducts controller:", error);
         res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 
@@ -28,7 +31,7 @@ export const getProductBySlug = async (req: Request<{ slug: string }>, res: Resp
         .single();
     
         if (error) {
-            console.log("Error fetching product by slug:", error);
+            logger("Error fetching product by slug:", error);
             return res.status(500).json({success: false, message: "Failed to fetch product"});
         }
         
@@ -39,6 +42,7 @@ export const getProductBySlug = async (req: Request<{ slug: string }>, res: Resp
         return res.status(200).json({success: true, message: "Product fetched successfully", data: product });
 
     } catch (error) {
+        logger("Error in getProductBySlug controller:", error);
         res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 
