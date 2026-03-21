@@ -1,6 +1,7 @@
 import { supabase } from "../../config/supabase.js";
 import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
+import logger from "../../utils/logger.js";
 
 export const getProfile = async (req: Request, res: Response) => {
   try {
@@ -17,6 +18,7 @@ export const getProfile = async (req: Request, res: Response) => {
       .maybeSingle();
   
     if(error) {
+      logger("Error fetching user profile:", error);
       return res.status(500).json({success: false, message: "Error fetching user profile"});
     }
   
@@ -27,6 +29,7 @@ export const getProfile = async (req: Request, res: Response) => {
     res.json({success: true, message: "Profile fetched successfully", data: user});
 
   } catch (error) {
+    logger("Error in getProfile controller:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 
@@ -52,6 +55,7 @@ export const updateProfile = async (req: Request, res: Response) => {
     .maybeSingle();
 
     if(error) {
+        logger("Error updating user profile:", error);
         return res.status(500).json({success: false, message: "Error updating user profile"});
     }
 
@@ -62,6 +66,7 @@ export const updateProfile = async (req: Request, res: Response) => {
     res.json({success: true, message: "Profile updated successfully", data: user});
 
   } catch (error) {
+    logger("Error in updateProfile controller:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 
@@ -74,6 +79,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
     .select("avatar, created_at, email, first_name, id, last_name, phone, role");
 
     if(error) {
+        logger("Error fetching all users:", error);
         return res.status(500).json({success: false, message: "Error fetching all users"});
     }
 
@@ -84,6 +90,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
     res.json({success: true, message: "Users fetched successfully", data: users});
 
   } catch (error) {
+    logger("Error in getAllUsers controller:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
   

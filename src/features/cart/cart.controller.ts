@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { supabase } from "../../config/supabase.js"
+import logger from "../../utils/logger.js";
 
 export const getCart = async (req: Request, res: Response) => {
     try {
@@ -25,12 +26,14 @@ export const getCart = async (req: Request, res: Response) => {
             .eq("user_id", userId);
     
         if (error) {
+            logger("Error fetching cart items:", error);
             return res.status(400).json({success: false, message: "Cannot Get Cart"});
         }
     
         res.status(200).json({success: true, data });
 
     } catch (error) {
+        logger("Error in getCart controller:", error);
         res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 }
@@ -56,6 +59,7 @@ export const addToCart = async (req: Request<{}, {}, { productId: string; quanti
             .single();
     
         if (productError) {
+            logger("Error fetching product:", productError);
             return res.status(400).json({success: false, message: "Cannot Get Product"});
         }
     
@@ -78,12 +82,14 @@ export const addToCart = async (req: Request<{}, {}, { productId: string; quanti
         .single();
     
       if (error) {
+        logger("Error adding to cart:", error);
         return res.status(400).json({success: false, message: "Cannot add to cart" });
       }
     
       res.status(201).json({success: true, message: "Item added to cart", data });
 
     } catch (error) {
+        logger("Error in addToCart controller:", error);
         res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 }
@@ -111,6 +117,7 @@ export const updateCartItem = async (req: Request<{itemId: string}, {}, { quanti
         .select()
     
         if (error) {
+            logger("Error updating cart item:", error);
             return res.status(400).json({ success: false, message: "Cannot update cart item" });
         }
     
@@ -118,7 +125,9 @@ export const updateCartItem = async (req: Request<{itemId: string}, {}, { quanti
             return res.status(404).json({ success: false, message: "Cart item not found" });
         }
         res.status(200).json({success: true, message: "Cart item updated", data });
+
     } catch (error) {
+        logger("Error in updateCartItem controller:", error);
         res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 }
@@ -143,12 +152,14 @@ export const removeFromCart = async (req: Request<{itemId: string}, {}, {}, {}>,
         .eq("id", itemId)
         .eq("user_id", userId);
     
-        if (error) { 
+        if (error) {
+            logger("Error removing item from cart:", error);
             return res.status(400).json({success: false, message: "Cannot remove item from cart" });
         }
     
         res.json({success: true, message: "Item removed" });
     } catch (error) {
+        logger("Error in removeFromCart controller:", error);
         res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 }
@@ -167,12 +178,14 @@ export const clearCart = async (req: Request, res: Response) => {
         .eq("user_id", userId);
     
         if (error) {
+            logger("Error clearing cart:", error);
             return res.status(400).json({success: false, message: "Cannot clear cart" });
         }
     
         res.json({success: true, message: "Cart cleared" });
         
     } catch (error) {
+        logger("Error in clearCart controller:", error);
         res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 }
