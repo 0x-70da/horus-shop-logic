@@ -19,11 +19,11 @@ export const setRefreshTokenCookie = (res: Response, token: string) => {
     res.cookie("refresh_token", token, {
         ...BASE_COOKIE_OPTIONS,
         maxAge: 7 * 24 * 60 * 60 * 1000,
-        path: "/api/auth/refresh",
+        // path: "/api/auth/refresh/",
     })
 }
 
 export const clearAuthCookies = (res: Response) => {
     res.clearCookie("access_token");
-    res.clearCookie("refresh_token", { path: "/api/auth/refresh" });
+    res.clearCookie("refresh_token"/*, { path: "/api/auth/refresh/" }*/);
 }

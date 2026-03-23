@@ -104,28 +104,21 @@ export const refresh = async (req: Request, res: Response) => {
     
         if (!token) {
             logger("Refresh token missing in request");
-            return res.status(401).json({ message: "Refresh token missing" });
+            return res.status(401).json({success: false, message: "Refresh token missing" });
         }
-    
-        let decoded: MyJwtPayload;
-    
-        try {
-            decoded = verifyRefreshToken(token);
-        } catch (error) {
-            logger("Error verifying refresh token in refresh controller:", error);
-            return res.status(401).json({ message: "Invalid or expired refresh token" });
-        }
+        
+        const decoded: MyJwtPayload = verifyRefreshToken(token);
     
         const { data, error } = await supabase.from("users").select("refresh_token").eq("id", decoded.id).maybeSingle();
     
         if (error) {
             logger("Error fetching user in refresh controller:", error);
-            return res.status(500).json({ message: "Internal Server Error" });
+            return res.status(500).json({success: false, message: "Internal Server Error" });
         }
     
         if (!data || data.refresh_token !== token) {
             logger("Refresh token mismatch for user ID:", decoded.id);
-            return res.status(401).json({ message: "Invalid refresh token" });
+            return res.status(401).json({success: false, message: "Invalid refresh token" });
         }
     
         const newAccessToken = generateAccessToken({ id: decoded.id, role: decoded.role }, "15m");
@@ -136,11 +129,11 @@ export const refresh = async (req: Request, res: Response) => {
         setAccessTokenCookie(res, newAccessToken);
         setRefreshTokenCookie(res, newRefreshToken);
     
-        return res.status(200).json({ message: "Tokens refreshed successfully" });
+        return res.status(200).json({success: true, message: "Tokens refreshed successfully" });
         
     } catch (error) {
         logger("Unexpected error in refresh controller:", error);
-        return res.status(500).json({ message: "Internal Server Error" });
+        return res.status(500).json({success: false, message: "Internal Server Error" });
     }
 
 }
@@ -151,19 +144,19 @@ export const me = async (req: Request, res: Response) => {
         
         if (!userId) {
             logger("User ID missing in me controller");
-            return res.status(401).json({ message: "Unauthorized" });
+            return res.status(401).json({success: false, message: "Unauthorized" });
         }
     
         const { data: user, error } = await supabase.from("users").select("id, email, phone, avatar, first_name, last_name, role").eq("id", userId).maybeSingle();
     
         if (error) {
             logger("Error fetching user in me controller:", error);
-            return res.status(500).json({ message: "Internal Server Error" });
+            return res.status(500).json({success: false, message: "Internal Server Error" });
         }
     
         if (!user) {
             logger("User not found in me controller for ID:", userId);
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ success: false, message: "User not found" });
         }
     
         return res.status(200).json({ success: true, message: "User info retrieved successfully", data: user });
@@ -181,7 +174,7 @@ export const logout = async (req: Request, res: Response) => {
     
         if (!userId) {
             logger("User ID missing in logout controller");
-            return res.status(401).json({ message: "Unauthorized" });
+            return res.status(401).json({ success: false, message: "Unauthorized" });
         }
     
         await supabase.from("users").update({ refresh_token: null }).eq("id", userId);
