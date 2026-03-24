@@ -118,6 +118,11 @@ export const refresh = async (req: Request, res: Response) => {
     
         if (!data || data.refresh_token !== token) {
             logger("Refresh token mismatch for user ID:", decoded.id);
+            const { error: nullifyError } = await supabase.from("users").update({ refresh_token: null }).eq("id", decoded.id);
+            if (nullifyError) {
+                logger("Error nullifying refresh token on mismatch for user ID:", decoded.id, nullifyError);
+            }
+            clearAuthCookies(res);
             return res.status(401).json({success: false, message: "Invalid refresh token" });
         }
     
