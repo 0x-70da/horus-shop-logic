@@ -16,6 +16,9 @@ export const verifyAccessToken = (token: string): MyJwtPayload => {
     if (typeof decoded === "string") {
         throw new Error("Invalid access token payload");
     }
+    if (typeof decoded.id !== "string" || typeof decoded.role !== "string") {
+        throw new Error("Invalid access token payload: missing required claims");
+    }
     return decoded as MyJwtPayload;
 }
 
@@ -23,6 +26,9 @@ export const verifyRefreshToken = (token: string): MyJwtPayload => {
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET!);
     if (typeof decoded === "string") {
         throw new Error("Invalid refresh token payload");
+    }
+    if (typeof decoded.id !== "string" || typeof decoded.role !== "string") {
+        throw new Error("Invalid refresh token payload: missing required claims");
     }
     return decoded as MyJwtPayload;
 }
