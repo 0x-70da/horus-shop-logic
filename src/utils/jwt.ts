@@ -16,6 +16,9 @@ export const verifyAccessToken = (token: string): AuthJwtPayload => {
     if (typeof decoded === "string") {
         throw new Error("Invalid access token payload");
     }
+    if (typeof (decoded as AuthJwtPayload).id !== "string" || typeof (decoded as AuthJwtPayload).role !== "string") {
+        throw new Error("Invalid access token claims");
+    }
     return decoded as AuthJwtPayload;
 }
 
@@ -23,6 +26,9 @@ export const verifyRefreshToken = (token: string): AuthJwtPayload => {
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET!);
     if (typeof decoded === "string") {
         throw new Error("Invalid refresh token payload");
+    }
+    if (typeof (decoded as AuthJwtPayload).id !== "string" || typeof (decoded as AuthJwtPayload).role !== "string") {
+        throw new Error("Invalid refresh token claims");
     }
     return decoded as AuthJwtPayload;
 }

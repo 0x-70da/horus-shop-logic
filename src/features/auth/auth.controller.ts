@@ -76,7 +76,7 @@ export const login = async (req: Request<{}, {}, LoginBody, {}>, res: Response) 
             return res.status(401).json({success: false, message: "Invalid email or password"});
         }
 
-        const payload = { id: user.id, role: user.role };
+        const payload = { id: user.id, role: user.role ?? "USER" };
     
         const accessToken = generateAccessToken(payload, "15m");
         const refreshToken = generateRefreshToken(payload, "7d");
