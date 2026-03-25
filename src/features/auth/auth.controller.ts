@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
 import { supabase } from "../../config/supabase.js";
-import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import type { RegisterBody, LoginBody } from "./auth.types.js";
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../../utils/jwt.js";
@@ -126,15 +125,16 @@ export const refresh = async (req: Request, res: Response) => {
     
         if (!data || data.refresh_token !== token) {
             logger("Refresh token mismatch for user ID:", decoded.id);
-            await clearRefreshTokenFromDb(decoded.id);
             clearAuthCookies(res);
+            await clearRefreshTokenFromDb(decoded.id);
             return res.status(401).json({success: false, message: "Invalid refresh token" });
         }
     
         const newAccessToken = generateAccessToken({ id: decoded.id, role: decoded.role }, "15m");
         const newRefreshToken = generateRefreshToken({ id: decoded.id, role: decoded.role }, "7d");
+        const hashedNewRefreshToken = await hash(newRefreshToken, 10);
     
-        const { error: updateError } = await supabase.from("users").update({ refresh_token: newRefreshToken }).eq("id", decoded.id);
+        const { error: updateError } = await supabase.from("users").update({ refresh_token: hashedNewRefreshToken }).eq("id", decoded.id);
 
         if (updateError) {
             logger("Error updating refresh token in database for user ID:", decoded.id, "Error:", updateError);
