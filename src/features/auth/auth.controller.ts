@@ -6,7 +6,9 @@ import type { RegisterBody, LoginBody } from "./auth.types.js";
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../../utils/jwt.js";
 import logger from "../../utils/logger.js";
 import { clearAuthCookies, setAccessTokenCookie, setRefreshTokenCookie } from "../../utils/cookies.js";
-import type { MyJwtPayload } from "../../types/jwt.types.js";
+import type { AuthJwtPayload } from "../../types/jwt.types.js";
+import { clearRefreshTokenFromDb } from "./auth.helpers.js";
+import { hash, compare } from "../../utils/bcrypt.js";
 dotenv.config();
 
 export const register = async (req: Request<{}, {}, RegisterBody, {}>, res: Response) => {
@@ -25,7 +27,7 @@ export const register = async (req: Request<{}, {}, RegisterBody, {}>, res: Resp
             return res.status(400).json({success: false, message: "User already exists"});
         }
     
-        const hashed = await bcrypt.hash(password, 10);
+        const hashed = await hash(password, 10);
     
         const { error: insertError } = await supabase.from("users").insert({
             email,
@@ -68,7 +70,7 @@ export const login = async (req: Request<{}, {}, LoginBody, {}>, res: Response) 
             return res.status(401).json({success: false, message: "Invalid email or password"});
         }
     
-        const matched = await bcrypt.compare(password, user.password);
+        const matched = await compare(password, user.password);
     
         if(!matched) {
             logger("Login attempt with invalid password for email:", email);
@@ -79,8 +81,14 @@ export const login = async (req: Request<{}, {}, LoginBody, {}>, res: Response) 
     
         const accessToken = generateAccessToken(payload, "15m");
         const refreshToken = generateRefreshToken(payload, "7d");
+        const hashedRefreshToken = await hash(refreshToken, 10);
 
-        await supabase.from("users").update({refresh_token: refreshToken,}).eq("id", user.id);
+        const { error: updateError } = await supabase.from("users").update({refresh_token: hashedRefreshToken,}).eq("id", user.id);
+
+        if (updateError) {
+            logger("Error updating refresh token in database for user ID:", user.id, "Error:", updateError);
+            return res.status(500).json({success: false, message: "Internal Server Error" });
+        }
 
         setAccessTokenCookie(res, accessToken);
         setRefreshTokenCookie(res, refreshToken);
@@ -107,24 +115,31 @@ export const refresh = async (req: Request, res: Response) => {
             return res.status(401).json({success: false, message: "Refresh token missing" });
         }
         
-        const decoded: MyJwtPayload = verifyRefreshToken(token);
+        const decoded: AuthJwtPayload = verifyRefreshToken(token);
     
-        const { data, error } = await supabase.from("users").select("refresh_token").eq("id", decoded.id).maybeSingle();
+        const { data, error: fetchError } = await supabase.from("users").select("refresh_token").eq("id", decoded.id).maybeSingle();
     
-        if (error) {
-            logger("Error fetching user in refresh controller:", error);
+        if (fetchError) {
+            logger("Error fetching user in refresh controller:", fetchError);
             return res.status(500).json({success: false, message: "Internal Server Error" });
         }
     
         if (!data || data.refresh_token !== token) {
             logger("Refresh token mismatch for user ID:", decoded.id);
+            await clearRefreshTokenFromDb(decoded.id);
+            clearAuthCookies(res);
             return res.status(401).json({success: false, message: "Invalid refresh token" });
         }
     
         const newAccessToken = generateAccessToken({ id: decoded.id, role: decoded.role }, "15m");
         const newRefreshToken = generateRefreshToken({ id: decoded.id, role: decoded.role }, "7d");
     
-        await supabase.from("users").update({ refresh_token: newRefreshToken }).eq("id", decoded.id);
+        const { error: updateError } = await supabase.from("users").update({ refresh_token: newRefreshToken }).eq("id", decoded.id);
+
+        if (updateError) {
+            logger("Error updating refresh token in database for user ID:", decoded.id, "Error:", updateError);
+            return res.status(500).json({success: false, message: "Internal Server Error" });
+        }
     
         setAccessTokenCookie(res, newAccessToken);
         setRefreshTokenCookie(res, newRefreshToken);
@@ -147,10 +162,10 @@ export const me = async (req: Request, res: Response) => {
             return res.status(401).json({success: false, message: "Unauthorized" });
         }
     
-        const { data: user, error } = await supabase.from("users").select("id, email, phone, avatar, first_name, last_name, role").eq("id", userId).maybeSingle();
+        const { data: user, error: fetchError } = await supabase.from("users").select("id, email, phone, avatar, first_name, last_name, role").eq("id", userId).maybeSingle();
     
-        if (error) {
-            logger("Error fetching user in me controller:", error);
+        if (fetchError) {
+            logger("Error fetching user in me controller:", fetchError);
             return res.status(500).json({success: false, message: "Internal Server Error" });
         }
     
@@ -177,7 +192,7 @@ export const logout = async (req: Request, res: Response) => {
             return res.status(401).json({ success: false, message: "Unauthorized" });
         }
     
-        await supabase.from("users").update({ refresh_token: null }).eq("id", userId);
+        await clearRefreshTokenFromDb(userId);
     
         clearAuthCookies(res);
     
