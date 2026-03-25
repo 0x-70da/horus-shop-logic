@@ -122,9 +122,15 @@ export const refresh = async (req: Request, res: Response) => {
             logger("Error fetching user in refresh controller:", fetchError);
             return res.status(500).json({success: false, message: "Internal Server Error" });
         }
+
+        if(!data) {
+            logger("User not found in refresh controller for ID:", decoded.id);
+            clearAuthCookies(res);
+            return res.status(404).json({success: false, message: "User not found" });
+        }
     
-        if (!data || data.refresh_token !== token) {
-            logger("Refresh token mismatch for user ID:", decoded.id);
+        if (!data.refresh_token || !await compare(token, data.refresh_token)) {
+            logger("Refresh token mismatch or missing for user ID:", decoded.id);
             clearAuthCookies(res);
             await clearRefreshTokenFromDb(decoded.id);
             return res.status(401).json({success: false, message: "Invalid refresh token" });
