@@ -55,7 +55,7 @@ export const login = async (req: Request<{}, {}, LoginBody, {}>, res: Response) 
     
         const { data: user, error } = await supabase
             .from("users")
-            .select("id, password, role")
+            .select("*")
             .eq("email", email)
             .maybeSingle();
     
@@ -92,10 +92,16 @@ export const login = async (req: Request<{}, {}, LoginBody, {}>, res: Response) 
         setAccessTokenCookie(res, accessToken);
         setRefreshTokenCookie(res, refreshToken);
 
-        const data = {
-            id: payload.id,
-            role: payload.role,
-        }
+        const data = { 
+            id: user.id,
+            email: user.email,
+            firstName: user.first_name,
+            lastName: user.last_name,
+            role: user.role,
+            avatar: user.avatar,
+            phone: user.phone,
+            createdAt : user.created_at
+        };
     
         return res.status(200).json({success: true, message: "Logged in successfully", data});
         
