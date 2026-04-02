@@ -249,6 +249,7 @@ export type Database = {
           review_count: number | null
           slug: string
           stock: number
+          subcategory_slug: string | null
           tags: string[] | null
         }
         Insert: {
@@ -264,6 +265,7 @@ export type Database = {
           review_count?: number | null
           slug: string
           stock?: number
+          subcategory_slug?: string | null
           tags?: string[] | null
         }
         Update: {
@@ -279,6 +281,7 @@ export type Database = {
           review_count?: number | null
           slug?: string
           stock?: number
+          subcategory_slug?: string | null
           tags?: string[] | null
         }
         Relationships: [
@@ -287,6 +290,13 @@ export type Database = {
             columns: ["category_slug"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["slug"]
+          },
+          {
+            foreignKeyName: "products_subcategory_slug_fkey"
+            columns: ["subcategory_slug"]
+            isOneToOne: false
+            referencedRelation: "sub_categories"
             referencedColumns: ["slug"]
           },
         ]
@@ -348,21 +358,21 @@ export type Database = {
           created_at: string
           id: string
           name: string | null
-          slug: string | null
+          slug: string
         }
         Insert: {
           category_id?: string | null
           created_at?: string
           id?: string
           name?: string | null
-          slug?: string | null
+          slug: string
         }
         Update: {
           category_id?: string | null
           created_at?: string
           id?: string
           name?: string | null
-          slug?: string | null
+          slug?: string
         }
         Relationships: [
           {
