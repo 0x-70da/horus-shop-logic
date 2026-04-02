@@ -16,10 +16,19 @@ export const getProducts = async (
       page = "1",
       limit = "20",
     } = req.query;
+
     const pageNumber = parseInt(page, 10);
     const requestedLimit = parseInt(limit, 10);
     const limitNumber = Math.min(requestedLimit, 50);
     const offset = (pageNumber - 1) * limitNumber;
+
+    if (pageNumber < 1 || limitNumber < 1) {
+      return res.status(400).json({ success: false, message: "Page and limit must be positive integers" });
+    }
+
+    if (isNaN(pageNumber) || isNaN(limitNumber)) {
+      return res.status(400).json({ success: false, message: "Page and limit must be valid numbers" });
+    }
 
     let query = supabase
       .from("products")
