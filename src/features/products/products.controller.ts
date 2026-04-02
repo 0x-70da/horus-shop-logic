@@ -101,7 +101,7 @@ export const getProductBySlug = async (
       .from("products")
       .select("*")
       .eq("slug", slug)
-      .single();
+      .maybeSingle();
 
     if (error) {
       logger("Error fetching product by slug:", error);
