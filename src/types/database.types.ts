@@ -237,6 +237,7 @@ export type Database = {
       }
       products: {
         Row: {
+          brand: string | null
           category_slug: string | null
           created_at: string | null
           description: string | null
@@ -253,6 +254,7 @@ export type Database = {
           tags: string[] | null
         }
         Insert: {
+          brand?: string | null
           category_slug?: string | null
           created_at?: string | null
           description?: string | null
@@ -269,6 +271,7 @@ export type Database = {
           tags?: string[] | null
         }
         Update: {
+          brand?: string | null
           category_slug?: string | null
           created_at?: string | null
           description?: string | null
