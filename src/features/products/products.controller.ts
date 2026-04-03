@@ -1,7 +1,8 @@
 import type { Request, Response } from "express";
 import { supabase } from "../../config/supabase.js";
 import logger from "../../utils/logger.js";
-import type { GetProductsQuery } from "./products.types.js";
+import type { GetProductsQuery, ValidatedGetProductsQuery } from "./products.types.js";
+import { validateGetProductsQuery } from "./products.helpers.js";
 
 export const getProducts = async (
   req: Request<{}, {}, {}, GetProductsQuery>,
@@ -11,24 +12,17 @@ export const getProducts = async (
     const {
       category,
       subcategory,
-      sortBy = "newest",
-      sortOrder = "desc",
-      page = "1",
-      limit = "20",
-    } = req.query;
+      brand,
+      minPrice,
+      maxPrice,
+      inStock,
+      sortBy,
+      sortOrder,
+      page: pageNumber,
+      limit: limitNumber,
+    } = validateGetProductsQuery(req.query, res) as ValidatedGetProductsQuery;
 
-    const pageNumber = parseInt(page, 10);
-    const requestedLimit = parseInt(limit, 10);
-    const limitNumber = Math.min(requestedLimit, 50);
     const offset = (pageNumber - 1) * limitNumber;
-
-    if (pageNumber < 1 || limitNumber < 1) {
-      return res.status(400).json({ success: false, message: "Page and limit must be positive integers" });
-    }
-
-    if (isNaN(pageNumber) || isNaN(limitNumber)) {
-      return res.status(400).json({ success: false, message: "Page and limit must be valid numbers" });
-    }
 
     let query = supabase
       .from("products")
@@ -41,6 +35,22 @@ export const getProducts = async (
 
     if (subcategory) {
       query = query.eq("subcategory_slug", subcategory);
+    }
+
+    if (brand) {
+      query = query.eq("brand", brand);
+    }
+
+    if (minPrice) {
+      query = query.gte("price", parseFloat(minPrice));
+    }
+
+    if (maxPrice) {
+      query = query.lte("price", parseFloat(maxPrice));
+    }
+
+    if (inStock === "true") {
+      query = query.gt("stock", 0);
     }
 
     switch (sortBy) {
