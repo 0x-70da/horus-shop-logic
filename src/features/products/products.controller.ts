@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { supabase } from "../../config/supabase.js";
 import logger from "../../utils/logger.js";
-import type { GetProductsQuery, ValidatedGetProductsQuery } from "./products.types.js";
+import type { GetProductsQuery } from "./products.types.js";
 import { validateGetProductsQuery } from "./products.helpers.js";
 
 export const getProducts = async (
@@ -9,6 +9,12 @@ export const getProducts = async (
   res: Response,
 ) => {
   try {
+    const validationResult = validateGetProductsQuery(req.query);
+
+    if (!validationResult.ok) {
+      return res.status(400).json({ success: false, message: validationResult.error });
+    }
+
     const {
       category,
       subcategory,
@@ -20,7 +26,7 @@ export const getProducts = async (
       sortOrder,
       page: pageNumber,
       limit: limitNumber,
-    } = validateGetProductsQuery(req.query, res) as ValidatedGetProductsQuery;
+    } = validationResult.value;
 
     const offset = (pageNumber - 1) * limitNumber;
 
