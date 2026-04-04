@@ -1,12 +1,12 @@
-export type SortBy = "price" | "newest" | "popularity" | "rating";
-
-export type SortOrder = "asc" | "desc";
-
 export interface GetProductsQuery {
     category?: string;
     subcategory?: string;
-    sortBy?: SortBy;
-    sortOrder?: SortOrder;
+    brand?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    inStock?: "true" | "false";
+    sortBy?: "price" | "newest" | "popularity" | "rating";
+    sortOrder?: "asc" | "desc";
     page?: string;
     limit?: string;
 }

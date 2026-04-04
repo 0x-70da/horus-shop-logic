@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { supabase } from "../../config/supabase.js";
 import logger from "../../utils/logger.js";
+import { getProductsQuerySchema } from "./products.schema.js";
 import type { GetProductsQuery } from "./products.types.js";
 
 export const getProducts = async (
@@ -8,32 +9,24 @@ export const getProducts = async (
   res: Response,
 ) => {
   try {
-    const {
-      category,
-      subcategory,
-      sortBy = "newest",
-      sortOrder = "desc",
-      page = "1",
-      limit = "20",
-    } = req.query;
-
-    const pageNumber = parseInt(page, 10);
-    const requestedLimit = parseInt(limit, 10);
-    const limitNumber = Math.min(requestedLimit, 50);
-    const offset = (pageNumber - 1) * limitNumber;
-
-    if (pageNumber < 1 || limitNumber < 1) {
-      return res.status(400).json({ success: false, message: "Page and limit must be positive integers" });
+    const parsedQuery = getProductsQuerySchema.safeParse(req.query);
+    
+    if (!parsedQuery.success) {
+      logger("Invalid query parameters:", parsedQuery.error);
+      return res.status(400).json({
+        success: false,
+        message: parsedQuery.error.issues[0]?.message || "Invalid query parameters",
+      })
     }
 
-    if (isNaN(pageNumber) || isNaN(limitNumber)) {
-      return res.status(400).json({ success: false, message: "Page and limit must be valid numbers" });
-    }
+    const { category, subcategory, brand, minPrice, maxPrice, inStock, sortBy, sortOrder, page, limit } = parsedQuery.data;
+
+    const offset = (page - 1) * limit;
 
     let query = supabase
       .from("products")
       .select("*", { count: "exact" })
-      .range(offset, offset + limitNumber - 1);
+      .range(offset, offset + limit - 1);
 
     if (category) {
       query = query.eq("category_slug", category);
@@ -41,6 +34,26 @@ export const getProducts = async (
 
     if (subcategory) {
       query = query.eq("subcategory_slug", subcategory);
+    }
+
+    if (brand) {
+      query = query.eq("brand", brand);
+    }
+
+    if (minPrice) {
+      query = query.gte("price", minPrice);
+    }
+
+    if (maxPrice) {
+      query = query.lte("price", maxPrice);
+    }
+
+    if (inStock === "true") {
+      query = query.gt("stock", 0);
+    }
+
+    if (inStock === "false") {
+      query = query.eq("stock", 0);
     }
 
     switch (sortBy) {
@@ -77,10 +90,10 @@ export const getProducts = async (
         data: {
           products,
           pagination: {
-            page: pageNumber,
-            limit: limitNumber,
+            page: page,
+            limit: limit,
             total: count ?? 0,
-            totalPages: Math.ceil((count ?? 0) / limitNumber),
+            totalPages: Math.ceil((count ?? 0) / limit),
           },
         },
       });
