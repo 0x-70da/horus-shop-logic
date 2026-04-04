@@ -1,33 +1,31 @@
 import type { Request, Response } from "express";
 import { supabase } from "../../config/supabase.js";
 import logger from "../../utils/logger.js";
-import type { GetProductsQuery, ValidatedGetProductsQuery } from "./products.types.js";
-import { validateGetProductsQuery } from "./products.helpers.js";
+import { getProductsQuerySchema, type GetProductsQuery } from "./products.schema.js";
 
 export const getProducts = async (
   req: Request<{}, {}, {}, GetProductsQuery>,
   res: Response,
 ) => {
   try {
-    const {
-      category,
-      subcategory,
-      brand,
-      minPrice,
-      maxPrice,
-      inStock,
-      sortBy,
-      sortOrder,
-      page: pageNumber,
-      limit: limitNumber,
-    } = validateGetProductsQuery(req.query, res) as ValidatedGetProductsQuery;
+    const parsedQuery = getProductsQuerySchema.safeParse(req.query);
+    
+    if (!parsedQuery.success) {
+      logger("Invalid query parameters:", parsedQuery.error);
+      return res.status(400).json({
+        success: false,
+        message: parsedQuery.error.issues[0]?.message || "Invalid query parameters",
+      })
+    }
 
-    const offset = (pageNumber - 1) * limitNumber;
+    const { category, subcategory, brand, minPrice, maxPrice, inStock, sortBy, sortOrder, page, limit } = parsedQuery.data;
+
+    const offset = (page - 1) * limit;
 
     let query = supabase
       .from("products")
       .select("*", { count: "exact" })
-      .range(offset, offset + limitNumber - 1);
+      .range(offset, offset + limit - 1);
 
     if (category) {
       query = query.eq("category_slug", category);
@@ -42,11 +40,11 @@ export const getProducts = async (
     }
 
     if (minPrice) {
-      query = query.gte("price", parseFloat(minPrice));
+      query = query.gte("price", minPrice);
     }
 
     if (maxPrice) {
-      query = query.lte("price", parseFloat(maxPrice));
+      query = query.lte("price", maxPrice);
     }
 
     if (inStock === "true") {
@@ -87,10 +85,10 @@ export const getProducts = async (
         data: {
           products,
           pagination: {
-            page: pageNumber,
-            limit: limitNumber,
+            page: page,
+            limit: limit,
             total: count ?? 0,
-            totalPages: Math.ceil((count ?? 0) / limitNumber),
+            totalPages: Math.ceil((count ?? 0) / limit),
           },
         },
       });
