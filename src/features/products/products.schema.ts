@@ -5,8 +5,8 @@ export const getProductsQuerySchema = z.object({
     subcategory: z.string().optional(),
     brand: z.string().optional(),
 
-    minPrice: z.coerce.number({error: "minPrice must be a number"}).min(0, { error: "minPrice must be a positive number" }).optional(),
-    maxPrice: z.coerce.number({error: "maxPrice must be a number"}).min(0, { error: "maxPrice must be a positive number" }).optional(),
+    minPrice: z.coerce.number({error: "minPrice must be a number"}).min(1, { error: "minPrice must be a positive number greater than 0" }).optional(),
+    maxPrice: z.coerce.number({error: "maxPrice must be a number"}).min(1, { error: "maxPrice must be a positive number greater than 0" }).optional(),
 
     inStock: z.enum(["true", "false"], { error: "inStock must be either 'true' or 'false'" }).optional(),
     sortBy: z.enum(["price", "newest", "popularity", "rating"], { error: "sortBy must be one of the allowed values" }).default("newest"),
@@ -20,4 +20,4 @@ export const getProductsQuerySchema = z.object({
     return true;
 }, { error: "minPrice must be less than or equal to maxPrice" });
 
-export type GetProductsQuery = z.infer<typeof getProductsQuerySchema>;
+export type ValidatedGetProductsQuery = z.infer<typeof getProductsQuerySchema>;

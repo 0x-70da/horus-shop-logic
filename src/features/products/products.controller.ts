@@ -1,7 +1,8 @@
 import type { Request, Response } from "express";
 import { supabase } from "../../config/supabase.js";
 import logger from "../../utils/logger.js";
-import { getProductsQuerySchema, type GetProductsQuery } from "./products.schema.js";
+import { getProductsQuerySchema } from "./products.schema.js";
+import type { GetProductsQuery } from "./products.types.js";
 
 export const getProducts = async (
   req: Request<{}, {}, {}, GetProductsQuery>,
@@ -49,6 +50,10 @@ export const getProducts = async (
 
     if (inStock === "true") {
       query = query.gt("stock", 0);
+    }
+
+    if (inStock === "false") {
+      query = query.eq("stock", 0);
     }
 
     switch (sortBy) {
