@@ -1,24 +1,28 @@
 import type { Request, Response } from "express";
 import { supabase } from "../../config/supabase.js";
-import dotenv from "dotenv";
 import type { RegisterBody, LoginBody } from "./auth.types.js";
-import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../../utils/jwt.js";
-import logger from "../../utils/logger.js";
-import { clearAuthCookies, setAccessTokenCookie, setRefreshTokenCookie } from "../../utils/cookies.js";
 import type { AuthJwtPayload } from "../../types/jwt.types.js";
-import { clearRefreshTokenFromDb } from "./auth.helpers.js";
+import { clearAuthCookies, setAccessTokenCookie, setRefreshTokenCookie } from "../../utils/cookies.js";
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../../utils/jwt.js";
 import { hash, compare } from "../../utils/bcrypt.js";
-dotenv.config();
+import logger from "../../utils/logger.js";
+import { clearRefreshTokenFromDb } from "./auth.helpers.js";
 
 export const register = async (req: Request<{}, {}, RegisterBody, {}>, res: Response) => {
     try {
         const { firstName, lastName, email, password } = req.body;
     
-        const { data: existingUsers, error: selectError } = await supabase.from("users").select("id").eq("email", email);
+        const { data: existingUsers, error: selectError } = await supabase
+          .from("users")
+          .select("id")
+          .eq("email", email);
     
         if(selectError) {
             logger("Error checking existing user in register controller:", selectError);
-            return res.status(500).json({success: false, message: `Internal Server Error`});
+            return res.status(500).json({
+                success: false,
+                message: `Internal Server Error`
+            });
         }
         
         if(existingUsers && existingUsers.length > 0) {
@@ -99,8 +103,6 @@ export const login = async (req: Request<{}, {}, LoginBody, {}>, res: Response) 
             lastName: user.last_name,
             role: user.role,
             avatar: user.avatar,
-            phone: user.phone,
-            createdAt : user.created_at
         };
     
         return res.status(200).json({success: true, message: "Logged in successfully", data});
@@ -174,7 +176,7 @@ export const me = async (req: Request, res: Response) => {
             return res.status(401).json({success: false, message: "Unauthorized" });
         }
     
-        const { data: user, error: fetchError } = await supabase.from("users").select("id, email, phone, avatar, first_name, last_name, role").eq("id", userId).maybeSingle();
+        const { data: user, error: fetchError } = await supabase.from("users").select("id, email, avatar, first_name, last_name, role").eq("id", userId).maybeSingle();
     
         if (fetchError) {
             logger("Error fetching user in me controller:", fetchError);

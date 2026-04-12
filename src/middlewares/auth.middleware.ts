@@ -1,6 +1,4 @@
 import type { NextFunction, Request, Response } from "express";
-import dotenv from "dotenv";
-dotenv.config();
 import { verifyAccessToken } from "../utils/jwt.js";
 import logger from "../utils/logger.js";
 
