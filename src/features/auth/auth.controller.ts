@@ -7,6 +7,8 @@ import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from ".
 import { hash, compare } from "../../utils/bcrypt.js";
 import logger from "../../utils/logger.js";
 import { clearRefreshTokenFromDb } from "./auth.helpers.js";
+import { generateToken, hashToken } from "../../utils/crypto.js";
+import { sendResetEmail } from "../../utils/mailer.js";
 
 export const register = async (req: Request<{}, {}, RegisterBody, {}>, res: Response) => {
     try {
@@ -111,6 +113,106 @@ export const login = async (req: Request<{}, {}, LoginBody, {}>, res: Response) 
         logger("Unexpected error in login controller:", error);
         return res.status(500).json({success: false, message: "Internal Server Error"});
     }
+}
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  try {
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("id, email, first_name, last_name")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (!user) {
+      logger("Password reset requested for non-existent email:", email);
+      return res.status(200).json({ success: true, message: "If an account with that email exists, a reset link has been sent" });
+    }
+
+    if (error) {
+      logger("Error fetching user in forgotPassword controller:", error);
+      return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+
+    const { rawToken, hashedToken, expiresAt } = await generateToken(32);
+
+    const { error: updateError } = await supabase.from("users").update({
+      reset_password_token: hashedToken,
+      reset_password_expires_at: expiresAt,
+    }).eq("id", user.id);
+
+    if (updateError) {
+      logger("Error updating reset token in database for user ID:", user.id, "Error:", updateError);
+      return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+
+    const resetCode = rawToken.slice(0, 6).toUpperCase();
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${rawToken}`;
+
+    await sendResetEmail(user.email, resetLink, resetCode);
+
+    return res.status(200).json({ success: true, message: "If an account with that email exists, a reset link has been sent" });
+
+  } catch (error) {
+    logger("Unexpected error in forgotPassword controller:", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+}
+
+export const resetPasswrod = async (req: Request, res: Response) => {
+  const { token, newPassword } = req.body;
+
+  try {
+    if (!token || !newPassword) {
+      logger("Reset password attempt with missing token or new password");
+      return res.status(400).json({ success: false, message: "Token and new password are required" });
+    }
+
+    const hashedToken = hashToken(token);
+
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("id, reset_password_token, reset_password_expires_at")
+      .eq("reset_password_token", hashedToken)
+      .maybeSingle();
+
+    if (!user) {
+      logger("Invalid or expired reset token used:", token);
+      return res.status(400).json({ success: false, message: "Invalid or expired token" });
+    }
+
+    if (error) {
+      logger("Error fetching user in resetPassword controller:", error);
+      return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+
+    const isExpired = user.reset_password_expires_at && new Date(user.reset_password_expires_at) < new Date();
+    if (isExpired) {
+      logger("Expired reset token used for user ID:", user.id);
+      return res.status(400).json({ success: false, message: "Invalid or expired token" });
+    }
+
+    const hashedNewPassword = await hash(newPassword, 10);
+
+    const { error: updateError } = await supabase.from("users").update({
+      password: hashedNewPassword,
+      reset_password_token: null,
+      reset_password_expires_at: null,
+      refresh_token: null, // log out from all devices after password reset
+    }).eq("id", user.id);
+
+    if (updateError) {
+      logger("Error updating password in database for user ID:", user.id, "Error:", updateError);
+      return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+
+    return res.status(200).json({ success: true, message: "Password reset successfully" });
+
+  } catch (error) {
+    logger("Unexpected error in resetPassword controller:", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
 }
 
 export const refresh = async (req: Request, res: Response) => {
