@@ -6,8 +6,8 @@ import { adminMiddleware } from "../../middlewares/admin.middleware.js";
 const router: ExpressRouter = Router();
 router.use(authMiddleware);
 
-router.get("/me", getProfile);
-router.patch("/me", updateProfile);
+router.get("/profile", getProfile);
+router.patch("/profile", updateProfile);
 
 // admin
 router.get("/", adminMiddleware, getAllUsers);

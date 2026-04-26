@@ -20,7 +20,8 @@ export const getCart = async (req: Request, res: Response) => {
                     name,
                     price,
                     images,
-                    stock
+                    stock,
+                    brand,
                 )
             `)
             .eq("user_id", userId);

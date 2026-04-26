@@ -398,6 +398,8 @@ export type Database = {
           password: string
           phone: string | null
           refresh_token: string | null
+          reset_password_expires_at: string | null
+          reset_password_token: string | null
           role: string | null
         }
         Insert: {
@@ -410,6 +412,8 @@ export type Database = {
           password?: string
           phone?: string | null
           refresh_token?: string | null
+          reset_password_expires_at?: string | null
+          reset_password_token?: string | null
           role?: string | null
         }
         Update: {
@@ -422,6 +426,8 @@ export type Database = {
           password?: string
           phone?: string | null
           refresh_token?: string | null
+          reset_password_expires_at?: string | null
+          reset_password_token?: string | null
           role?: string | null
         }
         Relationships: []
