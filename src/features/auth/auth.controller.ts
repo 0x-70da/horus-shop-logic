@@ -7,12 +7,22 @@ import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from ".
 import { hash, compare } from "../../utils/bcrypt.js";
 import logger from "../../utils/logger.js";
 import { clearRefreshTokenFromDb } from "./auth.helpers.js";
-import { generateToken, hashToken } from "../../utils/crypto.js";
+import { generateTokenAndCode, hashTokenOrCode } from "../../utils/crypto.js";
 import { sendResetEmail } from "../../utils/mailer.js";
+import { forgotPasswordSchema, loginSchema, registerSchema, resetPasswordSchema } from "./auth.schema.js";
 
 export const register = async (req: Request<{}, {}, RegisterBody, {}>, res: Response) => {
     try {
-        const { firstName, lastName, email, password } = req.body;
+      const safeBody = registerSchema.safeParse(req.body);
+      if (!safeBody.success) {
+        logger("Invalid registration data:", safeBody.error);
+        return res.status(400).json({
+          success: false,
+          message: safeBody.error.issues[0]?.message || "Invalid registration data",
+        });
+      }
+
+      const { firstName, lastName, email, password } = safeBody.data;
     
         const { data: existingUsers, error: selectError } = await supabase
           .from("users")
@@ -57,7 +67,15 @@ export const register = async (req: Request<{}, {}, RegisterBody, {}>, res: Resp
 
 export const login = async (req: Request<{}, {}, LoginBody, {}>, res: Response) => {
     try {
-        const { email, password } = req.body;
+      const safeBody = loginSchema.safeParse(req.body);
+      if (!safeBody.success) {
+        logger("Invalid login data:", safeBody.error);
+        return res.status(400).json({
+          success: false,
+          message: safeBody.error.issues[0]?.message || "Invalid login data",
+        });
+      }
+        const { email, password } = safeBody.data;
     
         const { data: user, error } = await supabase
             .from("users")
@@ -116,9 +134,17 @@ export const login = async (req: Request<{}, {}, LoginBody, {}>, res: Response) 
 }
 
 export const forgotPassword = async (req: Request, res: Response) => {
-  const { email } = req.body;
-
   try {
+  const safeBody = forgotPasswordSchema.safeParse(req.body);
+  if (!safeBody.success) {
+    logger("Invalid forgot password data:", safeBody.error);
+    return res.status(400).json({
+      success: false,
+      message: safeBody.error.issues[0]?.message || "Invalid data",
+    });
+  }
+  const { email } = safeBody.data;
+
     const { data: user, error } = await supabase
       .from("users")
       .select("id, email, first_name, last_name")
@@ -135,11 +161,12 @@ export const forgotPassword = async (req: Request, res: Response) => {
       return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 
-    const { rawToken, hashedToken, expiresAt } = await generateToken(32);
+    const { rawToken, hashedToken, resetCode, hashedResetCode, expiresAt } = await generateTokenAndCode(32);
 
     const { error: updateError } = await supabase.from("users").update({
-      reset_password_token: hashedToken,
-      reset_password_expires_at: expiresAt,
+      reset_token: hashedToken,
+      reset_code: hashedResetCode,
+      reset_expires_at: expiresAt,
     }).eq("id", user.id);
 
     if (updateError) {
@@ -147,7 +174,6 @@ export const forgotPassword = async (req: Request, res: Response) => {
       return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 
-    const resetCode = rawToken.slice(0, 6).toUpperCase();
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${rawToken}`;
 
     await sendResetEmail(user.email, resetLink, resetCode);
@@ -160,34 +186,57 @@ export const forgotPassword = async (req: Request, res: Response) => {
   }
 }
 
-export const resetPasswrod = async (req: Request, res: Response) => {
-  const { token, newPassword } = req.body;
-
+export const resetPassword = async (req: Request, res: Response) => {
   try {
-    if (!token || !newPassword) {
-      logger("Reset password attempt with missing token or new password");
-      return res.status(400).json({ success: false, message: "Token and new password are required" });
+  const safeBody = resetPasswordSchema.safeParse(req.body);
+  if (!safeBody.success) {
+    logger("Invalid reset password data:", safeBody.error);
+    return res.status(400).json({
+      success: false,
+      message: safeBody.error.issues[0]?.message || "Invalid data",
+    });
+  }
+  const { token, code, newPassword } = safeBody.data;
+
+    let user: { id: string; reset_token: string | null; reset_code: string | null; reset_expires_at: string | null; } | null = null;
+    let dbError = null;
+
+    if (token) {
+      const hashedToken = hashTokenOrCode(token);
+  
+      const { data, error } = await supabase
+        .from("users")
+        .select("id, reset_token, reset_code, reset_expires_at")
+        .eq("reset_token", hashedToken)
+        .maybeSingle();
+
+      user = data;
+      dbError = error;
+
+    } else if (code) {
+      const hashedCode = hashTokenOrCode(code);
+
+      const { data, error } = await supabase
+        .from("users")
+        .select("id, reset_token, reset_code, reset_expires_at")
+        .eq("reset_code", hashedCode)
+        .maybeSingle();
+
+      user = data;
+      dbError = error;
     }
-
-    const hashedToken = hashToken(token);
-
-    const { data: user, error } = await supabase
-      .from("users")
-      .select("id, reset_password_token, reset_password_expires_at")
-      .eq("reset_password_token", hashedToken)
-      .maybeSingle();
 
     if (!user) {
       logger("Invalid or expired reset token used:", token);
       return res.status(400).json({ success: false, message: "Invalid or expired token" });
     }
 
-    if (error) {
-      logger("Error fetching user in resetPassword controller:", error);
+    if (dbError) {
+      logger("Error fetching user in resetPassword controller:", dbError);
       return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 
-    const isExpired = user.reset_password_expires_at && new Date(user.reset_password_expires_at) < new Date();
+    const isExpired = user.reset_expires_at && new Date(user.reset_expires_at) < new Date();
     if (isExpired) {
       logger("Expired reset token used for user ID:", user.id);
       return res.status(400).json({ success: false, message: "Invalid or expired token" });
@@ -197,10 +246,13 @@ export const resetPasswrod = async (req: Request, res: Response) => {
 
     const { error: updateError } = await supabase.from("users").update({
       password: hashedNewPassword,
-      reset_password_token: null,
-      reset_password_expires_at: null,
+      reset_token: null,
+      reset_code: null,
+      reset_expires_at: null,
       refresh_token: null, // log out from all devices after password reset
     }).eq("id", user.id);
+
+    clearAuthCookies(res);
 
     if (updateError) {
       logger("Error updating password in database for user ID:", user.id, "Error:", updateError);
