@@ -11,16 +11,16 @@ const transporter = nodemailer.createTransport({
 })
 
 export const sendResetEmail = async (to: string, resetLink: string, resetCode: string) => {
-  await transporter.sendMail({
-    from: `"Horus Shop" <${process.env.SMTP_USER}>`,
-    to,
-    subject: 'Reset your password',
-    html: `
-      <h2>Reset Your Password</h2>
-      <p>click the link below or use the code:</p>
-      <a href="${resetLink}">Reset Password</a>
-      <p>Or enter this code manually: <strong>${resetCode}</strong></p>
-      <p>this link will expire in 1 hour.</p>
-    `
-  })
-}
+    await transporter.sendMail({
+      from: `"Horus Shop" <${process.env.SMTP_USER}>`,
+      to,
+      subject: 'Reset your password',
+      html: `
+        <h2>Reset Your Password</h2>
+        <p>click the link below or use the code:</p>
+        <a href="${resetLink}">Reset Password</a>
+        <p>Or enter this code manually: <strong>${resetCode}</strong></p>
+        <p>this link will expire in 1 hour.</p>
+      `
+    })
+  }
