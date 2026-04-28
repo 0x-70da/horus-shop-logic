@@ -126,7 +126,7 @@ export const createOrder = async (req: Request<{}, {}, CreateOrderBody>, res: Re
         return res.status(400).json({ success: false, message: "Cannot Update Order with Payment Intent" });
       }
 
-      return res.status(200).json({
+      return res.status(201).json({
         success: true,
         message: "Order created successfully",
         data: { ...order, paymentMethod, clientSecret, requiresPayment: true } });
