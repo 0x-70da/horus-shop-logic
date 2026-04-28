@@ -6,6 +6,7 @@ import cartRouter from "./features/cart/cart.routes.js";
 import wishlistRouter from "./features/wishlist/wishlist.routes.js";
 import categoriesRouter from "./features/categories/categories.routes.js";
 import ordersRouter from "./features/orders/orders.routes.js";
+import brandsRouter from "./features/brands/brands.routes.js";
 
 const router: ExpressRouter = Router();
 
@@ -16,5 +17,6 @@ router.use("/cart", cartRouter);
 router.use("/orders", ordersRouter);
 router.use("/wishlist", wishlistRouter);
 router.use("/categories", categoriesRouter);
+router.use("/brands", brandsRouter);
 
 export default router;
