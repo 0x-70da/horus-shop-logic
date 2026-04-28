@@ -31,7 +31,7 @@ export const getAllOrders = async (req: Request<{}, {}, {}, GetOrdersQuery>, res
 
     if (error) {
       logger("Error fetching orders:", error);
-      return res.status(400).json({ success: false, message: "Cannot Get Orders", error });
+      return res.status(400).json({ success: false, message: "Cannot Get Orders" });
     }
 
     return res.status(200).json({ success: true, message: "Orders retrieved successfully", data: { orders: data, pagination: { page, limit, total: count ?? 0, totalPages: Math.ceil((count ?? 0) / limit) } } });
@@ -80,7 +80,7 @@ export const createOrder = async (req: Request<{}, {}, CreateOrderBody>, res: Re
 
     if (!safeBody.success) {
       logger("Error creating order:", safeBody.error.issues);
-      return res.status(400).json({ success: false, message: "Invalid request body", errors: safeBody.error.issues });
+      return res.status(400).json({ success: false, message: "Invalid request body" });
     }
 
     const { addressId, shippingMethodId, promoCode, paymentMethod, notes } = safeBody.data;
@@ -94,7 +94,7 @@ export const createOrder = async (req: Request<{}, {}, CreateOrderBody>, res: Re
 
     if (error) {
       logger("Error placing order:", error);
-      return res.status(400).json({ success: false, message: "Cannot Create Order", error });
+      return res.status(400).json({ success: false, message: "Cannot Create Order" });
     }
 
     const order = data as {
@@ -165,7 +165,7 @@ export const cancelOrder = async (req: Request<{ orderId: string }>, res: Respon
 
     if (error) {
       logger("Error cancelling order:", error);
-      return res.status(400).json({ success: false, message: "Cannot Cancel Order", error });
+      return res.status(400).json({ success: false, message: "Cannot Cancel Order" });
     }
 
     return res.status(200).json({ success: true, message: "Order cancelled successfully" });
