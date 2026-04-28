@@ -72,6 +72,7 @@ export type Database = {
           is_active: boolean
           logo: string | null
           name: string
+          products_count: number
           slug: string
         }
         Insert: {
@@ -81,6 +82,7 @@ export type Database = {
           is_active?: boolean
           logo?: string | null
           name: string
+          products_count?: number
           slug: string
         }
         Update: {
@@ -90,6 +92,7 @@ export type Database = {
           is_active?: boolean
           logo?: string | null
           name?: string
+          products_count?: number
           slug?: string
         }
         Relationships: []
@@ -156,6 +159,7 @@ export type Database = {
           image: string | null
           is_active: boolean
           name: string
+          products_count: number
           slug: string
         }
         Insert: {
@@ -167,6 +171,7 @@ export type Database = {
           image?: string | null
           is_active?: boolean
           name: string
+          products_count?: number
           slug: string
         }
         Update: {
@@ -178,6 +183,7 @@ export type Database = {
           image?: string | null
           is_active?: boolean
           name?: string
+          products_count?: number
           slug?: string
         }
         Relationships: []
@@ -305,6 +311,7 @@ export type Database = {
           id: string
           notes: string | null
           order_number: string
+          payment_intent_id: string | null
           payment_method: string
           promo_code_id: string | null
           shipping: number
@@ -324,6 +331,7 @@ export type Database = {
           id?: string
           notes?: string | null
           order_number: string
+          payment_intent_id?: string | null
           payment_method?: string
           promo_code_id?: string | null
           shipping?: number
@@ -343,6 +351,7 @@ export type Database = {
           id?: string
           notes?: string | null
           order_number?: string
+          payment_intent_id?: string | null
           payment_method?: string
           promo_code_id?: string | null
           shipping?: number
@@ -749,6 +758,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          products_count: number
           slug: string
         }
         Insert: {
@@ -757,6 +767,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          products_count?: number
           slug: string
         }
         Update: {
@@ -765,6 +776,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          products_count?: number
           slug?: string
         }
         Relationships: [
@@ -896,6 +908,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_order: {
+        Args: { p_order_id: string; p_user_id: string }
+        Returns: Json
+      }
       get_current_price: { Args: { p_product_id: string }; Returns: number }
       place_order: {
         Args: {
@@ -904,6 +920,10 @@ export type Database = {
           p_shipping_method_id: string
           p_user_id: string
         }
+        Returns: Json
+      }
+      update_order_status: {
+        Args: { p_order_id: string; p_status: string }
         Returns: Json
       }
       validate_promo_code: {
