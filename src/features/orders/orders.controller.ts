@@ -28,7 +28,6 @@ export const getAllOrders = async (req: Request<{}, {}, {}, GetOrdersQuery>, res
     }
 
     const { data, error, count } = await query;
-    console.log(count);
 
     if (error) {
       logger("Error fetching orders:", error);
