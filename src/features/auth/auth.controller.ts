@@ -104,7 +104,7 @@ export const login = async (req: Request<{}, {}, LoginBody, {}>, res: Response) 
     
         const accessToken = generateAccessToken(payload, "15m");
         const refreshToken = generateRefreshToken(payload, "7d");
-        const hashedRefreshToken = await hash(refreshToken, 10);
+        const hashedRefreshToken = hashTokenOrCode(refreshToken);
 
         const { error: updateError } = await supabase.from("users").update({refresh_token: hashedRefreshToken,}).eq("id", user.id);
 
@@ -151,15 +151,16 @@ export const forgotPassword = async (req: Request, res: Response) => {
       .eq("email", email)
       .maybeSingle();
 
+      if (error) {
+        logger("Error fetching user in forgotPassword controller:", error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+      }
+      
     if (!user) {
       logger("Password reset requested for non-existent email:", email);
       return res.status(200).json({ success: true, message: "If an account with that email exists, a reset link has been sent" });
     }
 
-    if (error) {
-      logger("Error fetching user in forgotPassword controller:", error);
-      return res.status(500).json({ success: false, message: "Internal Server Error" });
-    }
 
     const { rawToken, hashedToken, resetCode, hashedResetCode, expiresAt } = await generateTokenAndCode(32);
 
@@ -226,15 +227,16 @@ export const resetPassword = async (req: Request, res: Response) => {
       dbError = error;
     }
 
+    if (dbError) {
+      logger("Error fetching user in resetPassword controller:", dbError);
+      return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+
     if (!user) {
       logger("Invalid or expired reset token used:", token);
       return res.status(400).json({ success: false, message: "Invalid or expired token" });
     }
 
-    if (dbError) {
-      logger("Error fetching user in resetPassword controller:", dbError);
-      return res.status(500).json({ success: false, message: "Internal Server Error" });
-    }
 
     const isExpired = user.reset_expires_at && new Date(user.reset_expires_at) < new Date();
     if (isExpired) {
@@ -291,7 +293,7 @@ export const refresh = async (req: Request, res: Response) => {
             return res.status(404).json({success: false, message: "User not found" });
         }
     
-        if (!data.refresh_token || !await compare(token, data.refresh_token)) {
+        if (!data.refresh_token || data.refresh_token !== hashTokenOrCode(token)) {
             logger("Refresh token mismatch or missing for user ID:", decoded.id);
             clearAuthCookies(res);
             await clearRefreshTokenFromDb(decoded.id);
@@ -300,7 +302,7 @@ export const refresh = async (req: Request, res: Response) => {
     
         const newAccessToken = generateAccessToken({ id: decoded.id, role: decoded.role }, "15m");
         const newRefreshToken = generateRefreshToken({ id: decoded.id, role: decoded.role }, "7d");
-        const hashedNewRefreshToken = await hash(newRefreshToken, 10);
+        const hashedNewRefreshToken = hashTokenOrCode(newRefreshToken);
     
         const { error: updateError } = await supabase.from("users").update({ refresh_token: hashedNewRefreshToken }).eq("id", decoded.id);
 
