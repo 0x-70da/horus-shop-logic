@@ -12,7 +12,7 @@ export const getWishlist = async (req: Request, res: Response) => {
     
         const { data: wishlistItems, error } = await supabase
         .from("wishlist_items")
-        .select("id, product_id, products(name, price, images)")
+        .select("*, products(name, price, images)")
         .eq("user_id", userId);
     
         if (error) {

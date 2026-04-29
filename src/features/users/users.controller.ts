@@ -26,7 +26,16 @@ export const getProfile = async (req: Request, res: Response) => {
       return res.status(404).json({success: false, message: "User not found"});
     }
   
-    res.json({success: true, message: "Profile fetched successfully", data: user});
+    res.json({success: true, message: "Profile fetched successfully", data: {
+      id: user.id,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      email: user.email,
+      role: user.role,
+      phone: user.phone,
+      avatar: user.avatar,
+      createdAt: user.created_at
+    }});
 
   } catch (error) {
     logger("Error in getProfile controller:", error);
@@ -43,13 +52,13 @@ export const updateProfile = async (req: Request, res: Response) => {
         return res.status(401).json({success: false, message: "Unauthorized" });
     }
 
-    const { avatar, email, first_name, last_name, phone, password } = req.body;
+    const { avatar, email, firstName, lastName, phone, password } = req.body;
 
     const hashed = await bcrypt.hash(password, 10);
 
     const { data: user, error } = await supabase
     .from("users")
-    .update({ avatar, email, first_name, last_name, phone, password: hashed })
+    .update({ avatar, email, firstName, lastName, phone, password: hashed })
     .eq("id", userId)
     .select("avatar, created_at, email, first_name, id, last_name, phone, role")
     .maybeSingle();
@@ -63,7 +72,16 @@ export const updateProfile = async (req: Request, res: Response) => {
         return res.status(404).json({success: false, message: "User not found"});
     }
 
-    res.json({success: true, message: "Profile updated successfully", data: user});
+    res.json({success: true, message: "Profile updated successfully", data: {
+      id: user.id,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      email: user.email,
+      role: user.role,
+      phone: user.phone,
+      avatar: user.avatar,
+      createdAt: user.created_at
+    }});
 
   } catch (error) {
     logger("Error in updateProfile controller:", error);
@@ -87,7 +105,16 @@ export const getAllUsers = async (req: Request, res: Response) => {
         return res.status(404).json({success: false, message: "No users found"});
     }
 
-    res.json({success: true, message: "Users fetched successfully", data: users});
+    res.json({success: true, message: "Users fetched successfully", data: users.map(user => ({
+      id: user.id,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      email: user.email,
+      role: user.role,
+      phone: user.phone,
+      avatar: user.avatar,
+      createdAt: user.created_at
+    }))});
 
   } catch (error) {
     logger("Error in getAllUsers controller:", error);

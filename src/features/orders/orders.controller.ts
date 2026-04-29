@@ -27,14 +27,24 @@ export const getAllOrders = async (req: Request<{}, {}, {}, GetOrdersQuery>, res
       query = query.eq("status", status);
     }
 
-    const { data, error, count } = await query;
+    const { data: orders, error, count } = await query;
 
     if (error) {
       logger("Error fetching orders:", error);
       return res.status(400).json({ success: false, message: "Cannot Get Orders" });
     }
 
-    return res.status(200).json({ success: true, message: "Orders retrieved successfully", data: { orders: data, pagination: { page, limit, total: count ?? 0, totalPages: Math.ceil((count ?? 0) / limit) } } });
+    return res.status(200).json({
+      success: true,
+      message: "Orders retrieved successfully",
+      data: { 
+        orders,
+        pagination: { 
+          page, 
+          limit, 
+          total: count ?? 0, totalPages: Math.ceil((count ?? 0) / limit) 
+        } 
+      }});
   } catch (error) {
     logger("Error in getAllOrders controller:", error);
     return res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -50,18 +60,18 @@ export const getOrderById = async (req: Request<{ orderId: string }>, res: Respo
 
     const orderId = req.params.orderId;
 
-    const { data, error } = await supabase.from("orders").select("*, address:addresses(full_name, address_line, city, state, country, phone, zip_code), shipping_method:shipping_methods(name, carrier, estimated_days), promo_code:promo_codes(code, type, value), items:order_items(*)").eq("id", orderId).eq("user_id", userId).single();
+    const { data: order, error } = await supabase.from("orders").select("*, address:addresses(full_name, address_line, city, state, country, phone, zip_code), shipping_method:shipping_methods(name, carrier, estimated_days), promo_code:promo_codes(code, type, value), items:order_items(*)").eq("id", orderId).eq("user_id", userId).single();
 
     if (error) {
       logger("Error fetching order by ID:", error);
       return res.status(400).json({ success: false, message: "Cannot Get Order", error });
     }
 
-    if (!data) {
+    if (!order) {
       return res.status(404).json({ success: false, message: "Order not found" });
     }
 
-    return res.status(200).json({ success: true, message: "Order retrieved successfully", data });
+    return res.status(200).json({ success: true, message: "Order retrieved successfully", data: order });
 
   } catch (error) {
     logger("Error in getOrderById controller:", error);
