@@ -29,15 +29,15 @@ export const getProducts = async (
       .range(offset, offset + limit - 1);
 
     if (category) {
-      query = query.eq("category_slug", category);
+      query = query.eq("category_id", category); 
     }
 
     if (subcategory) {
-      query = query.eq("subcategory_slug", subcategory);
+      query = query.eq("subcategory_id", subcategory); 
     }
 
     if (brand) {
-      query = query.eq("brand", brand);
+      query = query.eq("brand_id", brand); 
     }
 
     if (minPrice) {
@@ -103,21 +103,21 @@ export const getProducts = async (
   }
 };
 
-export const getProductBySlug = async (
-  req: Request<{ slug: string }>,
+export const getProductById = async (
+  req: Request<{ id: string }>,
   res: Response,
 ) => {
   try {
-    const { slug } = req.params;
+    const { id } = req.params;
 
     const { data: product, error } = await supabase
       .from("products")
       .select("*")
-      .eq("slug", slug)
+      .eq("id", id)
       .maybeSingle();
 
     if (error) {
-      logger("Error fetching product by slug:", error);
+      logger("Error fetching product by id:", error);
       return res
         .status(500)
         .json({ success: false, message: "Failed to fetch product" });
@@ -137,7 +137,7 @@ export const getProductBySlug = async (
         data: product,
       });
   } catch (error) {
-    logger("Error in getProductBySlug controller:", error);
+    logger("Error in getProductById controller:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
