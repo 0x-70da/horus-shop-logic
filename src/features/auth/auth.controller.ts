@@ -9,7 +9,7 @@ import logger from "../../utils/logger.js";
 import { clearRefreshTokenFromDb } from "./auth.helpers.js";
 import { generateTokenAndCode, hashTokenOrCode } from "../../utils/crypto.js";
 import { sendResetEmail } from "../../utils/mailer.js";
-import { forgotPasswordSchema, loginSchema, registerSchema, resetPasswordSchema } from "./auth.schema.js";
+import { forgotPasswordSchema, loginSchema, registerSchema, resetPasswordSchema, verifyCodeOrResetTokenSchema } from "./auth.schema.js";
 
 export const register = async (req: Request<{}, {}, RegisterBody, {}>, res: Response) => {
     try {
@@ -155,7 +155,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
         logger("Error fetching user in forgotPassword controller:", error);
         return res.status(500).json({ success: false, message: "Internal Server Error" });
       }
-      
+
     if (!user) {
       logger("Password reset requested for non-existent email:", email);
       return res.status(200).json({ success: true, message: "If an account with that email exists, a reset link has been sent" });
@@ -187,6 +187,71 @@ export const forgotPassword = async (req: Request, res: Response) => {
   }
 }
 
+export const verifyCodeOrResetToken = async (req: Request, res: Response) => {
+  try {
+    const safeData = verifyCodeOrResetTokenSchema.safeParse({
+      code: req.body.code,
+      token: req.query.token,
+    });
+
+    if (!safeData.success) {
+      logger("Invalid verify code data:", safeData.error);
+      return res.status(400).json({
+        success: false,
+        message: safeData.error.issues[0]?.message || "Invalid data",
+      });
+    }
+
+    const { code, token } = safeData.data;
+
+    let user: { id: string; reset_token?: string | null; reset_code?: string | null; reset_expires_at: string | null; } | null = null;
+    let dbError = null;
+
+    if (token) {
+      const hashedToken = hashTokenOrCode(token);
+      const { data, error } = await supabase
+        .from("users")
+        .select("id, reset_token, reset_expires_at")
+        .eq("reset_token", hashedToken)
+        .maybeSingle();
+
+      user = data;
+      dbError = error;
+    } else if (code) {
+      const hashedCode = hashTokenOrCode(code);
+      const { data, error } = await supabase
+        .from("users")
+        .select("id, reset_token, reset_expires_at")
+        .eq("reset_code", hashedCode)
+        .maybeSingle();
+
+      user = data;
+      dbError = error;
+    }
+
+    if (dbError) {
+      logger("Error fetching user in verifyCodeOrResetToken controller:", dbError);
+      return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+
+    if (!user) {
+      logger("Invalid reset code used:", code);
+      return res.status(400).json({ success: false, message: "Invalid or expired code or token" });
+    }
+
+    const isExpired = user.reset_expires_at && new Date(user.reset_expires_at) < new Date();
+    if (isExpired) {
+      logger("Expired reset code used for user ID:", user.id);
+      return res.status(400).json({ success: false, message: "Invalid or expired code or token" });
+    }
+
+    return res.status(200).json({ success: true, message: "Code or reset token verified successfully", data: { resetToken: user.reset_token } });
+  } catch (error) {
+    logger("Unexpected error in verifyCodeOrResetToken controller:", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+}
+
 export const resetPassword = async (req: Request, res: Response) => {
   try {
   const safeBody = resetPasswordSchema.safeParse(req.body);
@@ -197,51 +262,29 @@ export const resetPassword = async (req: Request, res: Response) => {
       message: safeBody.error.issues[0]?.message || "Invalid data",
     });
   }
-  const { token, code, newPassword } = safeBody.data;
+  const { newPassword, confirmNewPassword, resetToken } = safeBody.data;
 
-    let user: { id: string; reset_token: string | null; reset_code: string | null; reset_expires_at: string | null; } | null = null;
-    let dbError = null;
+  if (newPassword !== confirmNewPassword) {
+    logger("New password and confirm password do not match");
+    return res.status(400).json({ success: false, message: "Passwords do not match" });
+  }
 
-    if (token) {
-      const hashedToken = hashTokenOrCode(token);
+  const { data: user, error } = await supabase.from("users").select("id, reset_expires_at").eq("reset_token", resetToken).maybeSingle();
   
-      const { data, error } = await supabase
-        .from("users")
-        .select("id, reset_token, reset_code, reset_expires_at")
-        .eq("reset_token", hashedToken)
-        .maybeSingle();
-
-      user = data;
-      dbError = error;
-
-    } else if (code) {
-      const hashedCode = hashTokenOrCode(code);
-
-      const { data, error } = await supabase
-        .from("users")
-        .select("id, reset_token, reset_code, reset_expires_at")
-        .eq("reset_code", hashedCode)
-        .maybeSingle();
-
-      user = data;
-      dbError = error;
-    }
-
-    if (dbError) {
-      logger("Error fetching user in resetPassword controller:", dbError);
+    if (error) {
+      logger("Error fetching user in resetPassword controller:", error);
       return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 
     if (!user) {
-      logger("Invalid or expired reset token used:", token);
-      return res.status(400).json({ success: false, message: "Invalid or expired token" });
+      logger("Invalid reset token used in resetPassword controller");
+      return res.status(400).json({ success: false, message: "Invalid or expired reset token" });
     }
-
 
     const isExpired = user.reset_expires_at && new Date(user.reset_expires_at) < new Date();
     if (isExpired) {
       logger("Expired reset token used for user ID:", user.id);
-      return res.status(400).json({ success: false, message: "Invalid or expired token" });
+      return res.status(400).json({ success: false, message: "Invalid or expired reset token" });
     }
 
     const hashedNewPassword = await hash(newPassword, 10);
