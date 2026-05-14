@@ -387,7 +387,14 @@ export const me = async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, message: "User not found" });
         }
     
-        return res.status(200).json({ success: true, message: "User info retrieved successfully", data: user });
+        return res.status(200).json({ success: true, message: "User info retrieved successfully", data: {
+          id: user.id,
+          email: user.email,
+          firstName: user.first_name,
+          lastName: user.last_name,
+          role: user.role,
+          avatar: user.avatar,
+        } });
 
     } catch (error) {
         logger("Unexpected error in me controller:", error);
