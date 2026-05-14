@@ -9,6 +9,7 @@ import ordersRouter from "./features/orders/orders.routes.js";
 import brandsRouter from "./features/brands/brands.routes.js";
 import promoRouter from "./features/promo/promo.routes.js";
 import flashRouter from "./features/flash/flash.routes.js";
+import adminRouter from "./features/admin/admin.routes.js";
 
 const router: ExpressRouter = Router();
 
@@ -22,5 +23,6 @@ router.use("/categories", categoriesRouter);
 router.use("/promo", promoRouter);
 router.use("/flash", flashRouter);
 router.use("/brands", brandsRouter);
+router.use("/admin", adminRouter);
 
 export default router;
