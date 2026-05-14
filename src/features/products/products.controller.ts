@@ -24,8 +24,8 @@ export const getProducts = async (
     const offset = (page - 1) * limit;
 
     let query = supabase
-      .from("products")
-      .select("*", { count: "exact" })
+      .from("products_with_price")
+      .select("*,categories(name),subcategories(name),brands(name),product_variants(*)", { count: "exact" })
       .range(offset, offset + limit - 1);
 
     if (category) {
@@ -73,7 +73,7 @@ export const getProducts = async (
         query = query.order("created_at", { ascending: false });
     }
 
-    const { data: products, error, count } = await query;
+    const { data, error, count } = await query;
 
     if (error) {
       logger("Error fetching products:", error);
@@ -81,6 +81,76 @@ export const getProducts = async (
         .status(500)
         .json({ success: false, message: "Failed to fetch products" });
     }
+
+    if (!data || data.length === 0) {
+      return res
+        .status(200)
+        .json({
+          success: true,
+          message: "No products found",
+          data: {
+            products: [],
+            pagination: {
+              page: page,
+              limit: limit,
+              total: 0,
+              totalPages: 0,
+            },
+          },
+        });
+    }
+
+    const isBestSeller = data.some(product => product.total_sold ? product.total_sold >= 100 : false);
+    const isNewArrival = data.some(product => {
+      const createdAt = new Date(product.created_at!);
+      const now = new Date();
+      const diffInDays = (now.getTime() - createdAt.getTime()) / (1000 * 3600 * 24);
+      return diffInDays <= 30; 
+    });
+    const isFeatured = data.some(product => product.rating ? product.rating >= 4.5 : false);
+
+    const products = data.map(product => ({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      description: product.description,
+      price: product.price,
+      currentPrice: product.current_price,
+      stock: product.stock,
+      totalSold: product.total_sold,
+      categoryId: product.category_id,
+      subcategoryId: product.subcategory_id,
+      brandId: product.brand_id,
+      category: product.categories?.name,
+      subcategory: product.subcategories?.name,
+      brand: product.brands?.name,
+      rating: product.rating,
+      reviewCount: product.review_count,
+      images: product.images,
+      tags: product.tags,
+      isActive: product.is_active,
+      createdAt: product.created_at,
+      updatedAt: product.updated_at,
+      isBestSeller,
+      isNewArrival,
+      isFeatured,
+      dealId: product.deal_id,
+      discountPercent: product.deal_discount_percent,
+      dealEndsAt: product.deal_ends_at,
+      dealQuantity: product.deal_quantity,
+      dealSoldCount: product.deal_sold_count,
+      variants: product.product_variants?.map(variant => ({
+        id: variant.id,
+        name: variant.name,
+        productId: variant.product_id,
+        price: Number(variant.price_modifier + product.current_price || product.price),
+        stock: variant.stock,
+        sku: variant.sku,
+        attributes: variant.attributes,
+        isActive: variant.is_active,
+        createdAt: variant.created_at,
+      })),
+    }))
 
     return res
       .status(200)
@@ -110,9 +180,9 @@ export const getProductById = async (
   try {
     const { id } = req.params;
 
-    const { data: product, error } = await supabase
-      .from("products")
-      .select("*")
+    const { data, error } = await supabase
+      .from("products_with_price")
+      .select("*,categories(name),subcategories(name),brands(name),product_variants(*),reviews(*)")
       .eq("id", id)
       .maybeSingle();
 
@@ -123,10 +193,62 @@ export const getProductById = async (
         .json({ success: false, message: "Failed to fetch product" });
     }
 
-    if (!product) {
+    if (!data) {
       return res
         .status(404)
         .json({ success: false, message: "Product Not Found" });
+    }
+
+    const product = {
+      id: data.id,
+      name: data.name,
+      slug: data.slug,
+      description: data.description,
+      price: data.price,
+      currentPrice: data.current_price,
+      stock: data.stock,
+      totalSold: data.total_sold,
+      categoryId: data.category_id,
+      subcategoryId: data.subcategory_id,
+      brandId: data.brand_id,
+      category: data.categories?.name,
+      subcategory: data.subcategories?.name,
+      brand: data.brands?.name,
+      rating: data.rating,
+      reviewCount: data.review_count,
+      images: data.images,
+      tags: data.tags,
+      isActive: data.is_active,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      dealId: data.deal_id,
+      discountPercent: data.deal_discount_percent,
+      dealEndsAt: data.deal_ends_at,
+      dealQuantity: data.deal_quantity,
+      dealSoldCount: data.deal_sold_count,
+      reviews: data.reviews?.map(review => ({
+        id: review.id,
+        productId: review.product_id,
+        userId: review.user_id,
+        orderId: review.order_id,
+        title: review.title,
+        comment: review.comment,
+        rating: review.rating,
+        helpful: review.helpful,
+        verified: review.verified,
+        createdAt: review.created_at,
+      })),
+      variants: data.product_variants?.map(variant => ({
+        id: variant.id,
+        name: variant.name,
+        productId: variant.product_id,
+        price: Number(variant.price_modifier + data.current_price || data.price),
+        stock: variant.stock,
+        sku: variant.sku,
+        attributes: variant.attributes,
+        isActive: variant.is_active,
+        createdAt: variant.created_at,
+      })),
     }
 
     return res
@@ -134,7 +256,7 @@ export const getProductById = async (
       .json({
         success: true,
         message: "Product fetched successfully",
-        data: product,
+        data: product
       });
   } catch (error) {
     logger("Error in getProductById controller:", error);

@@ -134,6 +134,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "cart_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_with_price"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "cart_items_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -234,6 +241,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "flash_deals_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_with_price"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "flash_deals_variant_id_fkey"
             columns: ["variant_id"]
             isOneToOne: false
@@ -292,6 +306,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_with_price"
             referencedColumns: ["id"]
           },
           {
@@ -437,6 +458,13 @@ export type Database = {
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "product_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_with_price"
+            referencedColumns: ["id"]
+          },
         ]
       }
       products: {
@@ -449,7 +477,6 @@ export type Database = {
           images: string[]
           is_active: boolean
           name: string
-          original_price: number | null
           price: number
           rating: number
           review_count: number
@@ -469,7 +496,6 @@ export type Database = {
           images?: string[]
           is_active?: boolean
           name: string
-          original_price?: number | null
           price: number
           rating?: number
           review_count?: number
@@ -489,7 +515,6 @@ export type Database = {
           images?: string[]
           is_active?: boolean
           name?: string
-          original_price?: number | null
           price?: number
           rating?: number
           review_count?: number
@@ -710,6 +735,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_with_price"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reviews_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -895,6 +927,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "wishlist_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_with_price"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "wishlist_items_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -905,7 +944,56 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      products_with_price: {
+        Row: {
+          brand_id: string | null
+          category_id: string | null
+          created_at: string | null
+          current_price: number | null
+          deal_discount_percent: number | null
+          deal_ends_at: string | null
+          deal_id: string | null
+          deal_quantity: number | null
+          deal_sold_count: number | null
+          description: string | null
+          id: string | null
+          images: string[] | null
+          is_active: boolean | null
+          name: string | null
+          price: number | null
+          rating: number | null
+          review_count: number | null
+          slug: string | null
+          stock: number | null
+          subcategory_id: string | null
+          tags: string[] | null
+          total_sold: number | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "subcategories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       cancel_order: {
