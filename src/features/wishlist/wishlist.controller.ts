@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { supabase } from "../../config/supabase.js";
 import logger from "../../utils/logger.js";
+import { wishlistItemsSchema } from "./wishlist.schema.js";
 
 export const getWishlist = async (req: Request, res: Response) => {
     try {
@@ -10,7 +11,7 @@ export const getWishlist = async (req: Request, res: Response) => {
             return res.status(401).json({ success: false, message: "Unauthorized" });
         }
     
-        const { data: wishlistItems, error } = await supabase
+        const { data, error } = await supabase
         .from("wishlist_items")
         .select("*, products(name, price, images)")
         .eq("user_id", userId);
@@ -19,10 +20,18 @@ export const getWishlist = async (req: Request, res: Response) => {
             logger("Error fetching wishlist:", error);
             return res.status(500).json({ success: false, message: "Failed to fetch wishlist" });
         }
-    
-        if(!wishlistItems || wishlistItems.length === 0) {
-            return res.status(404).json({ success: false, message: "Wishlist not found" });
-        }
+
+        const wishlistItems = data?.map((item) => {
+          return {
+            id: item.id,
+            productId: item.product_id,
+            userId: item.user_id,
+            name: item.products.name,
+            price: item.products.price,
+            images: item.products.images,
+            createdAt: item.created_at,
+          }
+        })
     
         res.status(200).json({ success: true, message: "Wishlist fetched successfully", data: wishlistItems });
 
@@ -33,7 +42,7 @@ export const getWishlist = async (req: Request, res: Response) => {
 
 }
 
-export const addToWishlist = async (req: Request<{}, {}, { productId: string }, {}>, res: Response) => {
+export const addToWishlist = async (req: Request<{}, {}, { itemId: string }, {}>, res: Response) => {
     try {
         const userId = req.user?.id;
     
@@ -41,15 +50,17 @@ export const addToWishlist = async (req: Request<{}, {}, { productId: string }, 
             return res.status(401).json({ success: false, message: "Unauthorized" });
         }
     
-        const { productId } = req.body;
+        const safeInputs = wishlistItemsSchema.safeParse(req.body);
     
-        if(!productId) {
-            return res.status(400).json({ success: false, message: "Product ID is required" });
+        if(!safeInputs.success) {
+            return res.status(400).json({ success: false, message: "Invalid input data" });
         }
+
+        const { itemId } = safeInputs.data;
     
         const { data: wishlistItem, error } = await supabase
         .from("wishlist_items")
-        .insert({ user_id: userId, product_id: productId })
+        .insert({ user_id: userId, product_id: itemId })
         .select()
         .single();
     
@@ -67,7 +78,7 @@ export const addToWishlist = async (req: Request<{}, {}, { productId: string }, 
 
 }
 
-export const removeFromWishlist = async (req: Request<{ productId: string }, {}, {}, {}>, res: Response) => {
+export const removeFromWishlist = async (req: Request<{ itemId: string }, {}, {}, {}>, res: Response) => {
     try {
         const userId = req.user?.id;
     
@@ -75,16 +86,22 @@ export const removeFromWishlist = async (req: Request<{ productId: string }, {},
             return res.status(401).json({ success: false, message: "Unauthorized" });
         }
     
-        const { productId } = req.params;
+        const safeInputs = wishlistItemsSchema.safeParse(req.params);
+        if (!safeInputs.success) {
+          logger("Validation error in removeFromWishlist:", safeInputs.error);
+          return res.status(400).json({ success: false, message: "Invalid inputs for removing from wishlist" });
+        }
     
-        if(!productId) {
-            return res.status(400).json({ success: false, message: "Product ID is required" });
+        const { itemId } = safeInputs.data;
+
+        if(!itemId) {
+            return res.status(400).json({ success: false, message: "Item ID is required" });
         }
     
         const { error } = await supabase
         .from("wishlist_items")
         .delete()
-        .eq("product_id", productId)
+        .eq("id", itemId)
         .eq("user_id", userId);
     
         if (error) {

@@ -8,6 +8,6 @@ router.use(authMiddleware);
 
 router.get("/", getWishlist);
 router.post("/", addToWishlist);
-router.delete("/:productId", removeFromWishlist);
+router.delete("/:itemId", removeFromWishlist);
 
 export default router;
