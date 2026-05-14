@@ -7,4 +7,13 @@ interface UserRequest extends Request {
     }
 }
 
+export type User = {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  avatar?: string;
+}
+
 export type { UserRequest };

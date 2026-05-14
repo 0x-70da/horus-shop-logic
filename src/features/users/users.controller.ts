@@ -1,7 +1,8 @@
 import { supabase } from "../../config/supabase.js";
 import type { Request, Response } from "express";
-import bcrypt from "bcrypt";
 import logger from "../../utils/logger.js";
+import type { User } from "./users.types.js";
+import { usersSchema } from "./users.schema.js";
 
 export const getProfile = async (req: Request, res: Response) => {
   try {
@@ -44,7 +45,7 @@ export const getProfile = async (req: Request, res: Response) => {
 
 }
 
-export const updateProfile = async (req: Request, res: Response) => {
+export const updateProfile = async (req: Request<{}, {}, User, {}>, res: Response) => {
   try {
     const userId = req.user?.id;
 
@@ -52,15 +53,19 @@ export const updateProfile = async (req: Request, res: Response) => {
         return res.status(401).json({success: false, message: "Unauthorized" });
     }
 
-    const { avatar, email, firstName, lastName, phone, password } = req.body;
+    const safeBody = usersSchema.safeParse(req.body);
+    if (!safeBody.success) {
+      logger("Validation error in updateProfile:", safeBody.error);
+      return res.status(400).json({ success: false, message: "Invalid inputs for updating profile" });
+    }
 
-    const hashed = await bcrypt.hash(password, 10);
+    const { email, firstName, lastName, phone, avatar } = safeBody.data;
 
     const { data: user, error } = await supabase
     .from("users")
-    .update({ avatar, email, firstName, lastName, phone, password: hashed })
+    .update({ email, first_name: firstName, last_name: lastName, phone: phone ?? null, avatar: avatar ?? null, updated_at: (new Date()).toISOString() })
     .eq("id", userId)
-    .select("avatar, created_at, email, first_name, id, last_name, phone, role")
+    .select("avatar, created_at, email, first_name, id, last_name, phone, role, updated_at")
     .maybeSingle();
 
     if(error) {
@@ -80,7 +85,7 @@ export const updateProfile = async (req: Request, res: Response) => {
       role: user.role,
       phone: user.phone,
       avatar: user.avatar,
-      createdAt: user.created_at
+      updatedAt: user.updated_at
     }});
 
   } catch (error) {
@@ -88,37 +93,4 @@ export const updateProfile = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 
-}
-
-export const getAllUsers = async (req: Request, res: Response) => {
-  try {
-    const { data: users, error } = await supabase
-    .from("users")
-    .select("avatar, created_at, email, first_name, id, last_name, phone, role");
-
-    if(error) {
-        logger("Error fetching all users:", error);
-        return res.status(500).json({success: false, message: "Error fetching all users"});
-    }
-
-    if (!users || users.length === 0) {
-        return res.status(404).json({success: false, message: "No users found"});
-    }
-
-    res.json({success: true, message: "Users fetched successfully", data: users.map(user => ({
-      id: user.id,
-      firstName: user.first_name,
-      lastName: user.last_name,
-      email: user.email,
-      role: user.role,
-      phone: user.phone,
-      avatar: user.avatar,
-      createdAt: user.created_at
-    }))});
-
-  } catch (error) {
-    logger("Error in getAllUsers controller:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-  
 }
