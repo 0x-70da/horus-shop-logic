@@ -4,7 +4,7 @@ import { z } from "zod";
 export const createOrderSchema = z.object({
   addressId: z.string(),
   shippingMethodId: z.string(),
-  promoCode: z.string().optional(),
+  promoCode: z.string().trim().min(1).optional(),
   paymentMethod: z.enum([
     "credit_card",
     "cash_on_delivery",

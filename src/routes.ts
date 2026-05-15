@@ -13,6 +13,7 @@ import adminRouter from "./features/admin/admin.routes.js";
 import shippingRouter from "./features/shipping/shipping.routes.js";
 import reviewsRouter from "./features/reviews/reviews.routes.js";
 import taxRouter from "./features/tax/tax.route.js";
+import addressesRouter from "./features/addresses/addresses.routes.js";
 
 const router: ExpressRouter = Router();
 
@@ -30,5 +31,6 @@ router.use("/admin", adminRouter);
 router.use("/shipping-methods", shippingRouter);
 router.use("/reviews", reviewsRouter);
 router.use("/tax", taxRouter);
+router.use("/addresses", addressesRouter);
 
 export default router;

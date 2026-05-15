@@ -99,7 +99,7 @@ export const createOrder = async (req: Request<{}, {}, CreateOrderBody>, res: Re
       p_user_id: userId,
       p_address_id: addressId,
       p_shipping_method_id: shippingMethodId,
-      p_promo_code: promoCode ?? "",
+      p_promo_code: promoCode ?? null,
     });
 
     if (error) {
