@@ -1,10 +1,10 @@
 import type { Request } from "express";
 
 interface UserRequest extends Request {
-    user?: {
-        id: string;
-        role: string;
-    }
+  user?: {
+    id: string;
+    role: string;
+  };
 }
 
 export type User = {
@@ -14,6 +14,6 @@ export type User = {
   lastName: string;
   phone?: string;
   avatar?: string;
-}
+};
 
 export type { UserRequest };

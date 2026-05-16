@@ -1,4 +1,4 @@
-import { Router ,Router as ExpressRouter } from "express";
+import { Router, Router as ExpressRouter } from "express";
 import productsRouter from "./features/products/products.routes.js";
 import authRouter from "./features/auth/auth.routes.js";
 import usersRouter from "./features/users/users.routes.js";

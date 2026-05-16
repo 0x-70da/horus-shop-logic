@@ -17,7 +17,14 @@ export interface CreateOrderBody {
 export interface GetOrdersQuery {
   page: number;
   limit: number;
-  status?: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled" | "refunded";
+  status?:
+    | "pending"
+    | "confirmed"
+    | "processing"
+    | "shipped"
+    | "delivered"
+    | "cancelled"
+    | "refunded";
 }
 
 export interface OrderFilters {

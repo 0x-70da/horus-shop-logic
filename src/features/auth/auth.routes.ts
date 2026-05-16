@@ -1,5 +1,14 @@
 import { Router, Router as ExpressRouter } from "express";
-import { register, login, refresh, me, logout, forgotPassword, resetPassword, verifyCodeOrResetToken } from "./auth.controller.js";
+import {
+  register,
+  login,
+  refresh,
+  me,
+  logout,
+  forgotPassword,
+  resetPassword,
+  verifyCodeOrResetToken,
+} from "./auth.controller.js";
 import { authMiddleware } from "../../middlewares/auth.middleware.js";
 
 const router: ExpressRouter = Router();
