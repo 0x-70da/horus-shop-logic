@@ -146,12 +146,16 @@ export const createOrder = async (
     const { addressId, shippingMethodId, promoCode, paymentMethod, notes } =
       safeBody.data;
 
-    const { data, error } = await supabase.rpc("place_order", {
+    const rpcArgs = {
       p_user_id: userId,
       p_address_id: addressId,
       p_shipping_method_id: shippingMethodId,
-      p_promo_code: promoCode ?? null,
-    });
+      ...(promoCode !== null && promoCode !== undefined
+        ? { p_promo_code: promoCode }
+        : {}),
+    };
+
+    const { data, error } = await supabase.rpc("place_order", rpcArgs);
 
     if (error) {
       logger("Error placing order:", error);

@@ -162,7 +162,8 @@ export const getProducts = async (
         name: variant.name,
         productId: variant.product_id,
         price: Number(
-          variant.price_modifier + product.current_price || product.price,
+          variant.price_modifier +
+            (product.current_price ?? product.price ?? 0),
         ),
         stock: variant.stock,
         sku: variant.sku,
@@ -263,7 +264,7 @@ export const getProductById = async (
         name: variant.name,
         productId: variant.product_id,
         price: Number(
-          variant.price_modifier + data.current_price || data.price,
+          variant.price_modifier + (data.current_price ?? data.price ?? 0),
         ),
         stock: variant.stock,
         sku: variant.sku,

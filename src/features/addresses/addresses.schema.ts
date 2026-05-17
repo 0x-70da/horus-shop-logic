@@ -13,7 +13,8 @@ export const createAddressSchema = z.object({
 });
 
 export const updateAddressSchema = createAddressSchema.partial().extend({
-  isDefault: z.boolean().default(false),
+  country: z.string().min(2, "Country is required").optional(),
+  isDefault: z.boolean().optional(),
 });
 
 export type CreateAddressBody = z.infer<typeof createAddressSchema>;
