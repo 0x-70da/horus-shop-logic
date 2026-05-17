@@ -109,7 +109,9 @@ export const getProducts = async (
     });
     const isFeatured = data.some(product => product.rating ? product.rating >= 4.5 : false);
 
-    const products = data.map(product => ({
+    const products = data.map(product => {
+      const productBasePrice = product.current_price ?? product.price ?? 0;
+      return {
       id: product.id,
       name: product.name,
       slug: product.slug,
@@ -143,14 +145,15 @@ export const getProducts = async (
         id: variant.id,
         name: variant.name,
         productId: variant.product_id,
-        price: Number(variant.price_modifier + product.current_price || product.price),
+        price: Number(variant.price_modifier + productBasePrice),
         stock: variant.stock,
         sku: variant.sku,
         attributes: variant.attributes,
         isActive: variant.is_active,
         createdAt: variant.created_at,
       })),
-    }))
+    };
+    })
 
     return res
       .status(200)
@@ -199,6 +202,7 @@ export const getProductById = async (
         .json({ success: false, message: "Product Not Found" });
     }
 
+    const basePrice = data.current_price ?? data.price ?? 0;
     const product = {
       id: data.id,
       name: data.name,
@@ -242,7 +246,7 @@ export const getProductById = async (
         id: variant.id,
         name: variant.name,
         productId: variant.product_id,
-        price: Number(variant.price_modifier + data.current_price || data.price),
+        price: Number(variant.price_modifier + basePrice),
         stock: variant.stock,
         sku: variant.sku,
         attributes: variant.attributes,
