@@ -142,6 +142,13 @@ export const updateAddress = async (
       ...(isDefault !== undefined ? { is_default: isDefault } : {}),
     };
 
+    if (Object.keys(updatePayload).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one updatable field must be provided",
+      });
+    }
+
     const { data, error } = await supabase
       .from("addresses")
       .update(updatePayload)
