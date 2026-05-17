@@ -21,13 +21,11 @@ export const getAllCategories = async (req: Request, res: Response) => {
         .json({ success: false, message: "No categories found" });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Categories fetched successfully",
-        data: categories,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Categories fetched successfully",
+      data: categories,
+    });
   } catch (error) {
     logger("Error in getAllCategories controller:", error);
     return res

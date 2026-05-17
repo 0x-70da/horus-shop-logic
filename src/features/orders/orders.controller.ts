@@ -22,13 +22,11 @@ export const getAllOrders = async (
     const parsedQuery = getOrdersQuerySchema.safeParse(req.query);
     if (!parsedQuery.success) {
       logger("Invalid query parameters:", parsedQuery.error.issues);
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Invalid query parameters",
-          errors: parsedQuery.error.issues,
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid query parameters",
+        errors: parsedQuery.error.issues,
+      });
     }
 
     const { page, limit, status } = parsedQuery.data;
@@ -113,13 +111,11 @@ export const getOrderById = async (
         .json({ success: false, message: "Order not found" });
     }
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Order retrieved successfully",
-        data: order,
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Order retrieved successfully",
+      data: order,
+    });
   } catch (error) {
     logger("Error in getOrderById controller:", error);
     return res
@@ -196,12 +192,10 @@ export const createOrder = async (
           "Error updating order with Stripe payment intent ID:",
           updateErrorWithStripe,
         );
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "Cannot Update Order with Payment Intent",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "Cannot Update Order with Payment Intent",
+        });
       }
 
       return res.status(201).json({
@@ -224,12 +218,10 @@ export const createOrder = async (
         "Error updating order with payment method:",
         updateErrorWithNonStripe,
       );
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Cannot Update Order with Payment Method",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Cannot Update Order with Payment Method",
+      });
     }
 
     return res.status(200).json({

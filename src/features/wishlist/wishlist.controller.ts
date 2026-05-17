@@ -35,13 +35,11 @@ export const getWishlist = async (req: Request, res: Response) => {
       };
     });
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Wishlist fetched successfully",
-        data: wishlistItems,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Wishlist fetched successfully",
+      data: wishlistItems,
+    });
   } catch (error) {
     logger("Error in getWishlist controller:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -82,13 +80,11 @@ export const addToWishlist = async (
         .json({ success: false, message: "Failed to add item to wishlist" });
     }
 
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "Item added to wishlist",
-        data: wishlistItem,
-      });
+    res.status(201).json({
+      success: true,
+      message: "Item added to wishlist",
+      data: wishlistItem,
+    });
   } catch (error) {
     logger("Error in addToWishlist controller:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -109,12 +105,10 @@ export const removeFromWishlist = async (
     const safeInputs = wishlistItemsSchema.safeParse(req.params);
     if (!safeInputs.success) {
       logger("Validation error in removeFromWishlist:", safeInputs.error);
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Invalid inputs for removing from wishlist",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid inputs for removing from wishlist",
+      });
     }
 
     const { itemId } = safeInputs.data;
@@ -133,12 +127,10 @@ export const removeFromWishlist = async (
 
     if (error) {
       logger("Error removing item from wishlist:", error);
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Failed to remove item from wishlist",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Failed to remove item from wishlist",
+      });
     }
 
     res

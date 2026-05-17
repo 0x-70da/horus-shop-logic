@@ -21,13 +21,11 @@ export const getAllBrands = async (req: Request, res: Response) => {
         .json({ success: false, message: "No brands found" });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Brands fetched successfully",
-        data: brands,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Brands fetched successfully",
+      data: brands,
+    });
   } catch (error) {
     logger("Error in getAllBrands controller:", error);
     return res

@@ -64,13 +64,11 @@ export const getCart = async (req: Request, res: Response) => {
     const subtotal = cartItems?.reduce((sum, i) => sum + i.lineTotal, 0) ?? 0;
     const itemCount = cartItems?.reduce((sum, i) => sum + i.quantity, 0) ?? 0;
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        data: { cartItems, subtotal, itemCount },
-        message: "Cart fetched successfully",
-      });
+    res.status(200).json({
+      success: true,
+      data: { cartItems, subtotal, itemCount },
+      message: "Cart fetched successfully",
+    });
   } catch (error) {
     logger("Error in getCart controller:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -91,12 +89,10 @@ export const addToCart = async (
     const safeBody = cartItemsSchema.safeParse(req.body);
     if (!safeBody.success) {
       logger("Validation error in addToCart:", safeBody.error);
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Invalid inputs for adding cart items",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid inputs for adding cart items",
+      });
     }
 
     const { itemId, variantId, quantity } = safeBody.data;
@@ -118,12 +114,10 @@ export const addToCart = async (
 
       if (!variant) {
         logger("Variant not found or inactive:", variantError);
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "Product variant is not available",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "Product variant is not available",
+        });
       }
 
       if (variant.stock < quantity) {
@@ -132,12 +126,10 @@ export const addToCart = async (
           requested: quantity,
           available: variant.stock,
         });
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "Insufficient stock for the requested product variant",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "Insufficient stock for the requested product variant",
+        });
       }
     } else {
       const { data: product, error: productError } = await supabase
@@ -166,12 +158,10 @@ export const addToCart = async (
           requested: quantity,
           available: product.stock,
         });
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "Insufficient stock for the requested product",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "Insufficient stock for the requested product",
+        });
       }
     }
 
@@ -263,12 +253,10 @@ export const updateCartItem = async (
     });
     if (!safeInputs.success) {
       logger("Validation error in updateCartItem:", safeInputs.error);
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Invalid inputs for updating cart item",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid inputs for updating cart item",
+      });
     }
 
     const { itemId } = safeInputs.data;
@@ -317,23 +305,19 @@ export const removeFromCart = async (
       .safeParse({ ...req.params });
     if (!safeInputs.success) {
       logger("Validation error in removeFromCart:", safeInputs.error);
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Invalid inputs for removing cart item",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid inputs for removing cart item",
+      });
     }
 
     const { itemId } = safeInputs.data;
 
     if (!itemId) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Item ID is required for removing cart item",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Item ID is required for removing cart item",
+      });
     }
 
     const { error } = await supabase

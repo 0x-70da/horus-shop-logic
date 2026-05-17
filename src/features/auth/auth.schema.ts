@@ -38,11 +38,9 @@ export const resetPasswordSchema = z
     newPassword: z
       .string()
       .min(6, { error: "New password must be at least 6 characters long" }),
-    confirmNewPassword: z
-      .string()
-      .min(6, {
-        error: "Confirm new password must be at least 6 characters long",
-      }),
+    confirmNewPassword: z.string().min(6, {
+      error: "Confirm new password must be at least 6 characters long",
+    }),
     resetToken: z.string().min(1, { error: "Reset token is required" }),
   })
   .refine((data) => data.newPassword === data.confirmNewPassword, {

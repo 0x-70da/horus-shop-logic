@@ -209,13 +209,11 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
     if (!user) {
       logger("Password reset requested for non-existent email:", email);
-      return res
-        .status(200)
-        .json({
-          success: true,
-          message:
-            "If an account with that email exists, a reset link has been sent",
-        });
+      return res.status(200).json({
+        success: true,
+        message:
+          "If an account with that email exists, a reset link has been sent",
+      });
     }
 
     const { rawToken, hashedToken, resetCode, hashedResetCode, expiresAt } =
@@ -246,13 +244,11 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
     await sendResetEmail(user.email, resetLink, resetCode);
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message:
-          "If an account with that email exists, a reset link has been sent",
-      });
+    return res.status(200).json({
+      success: true,
+      message:
+        "If an account with that email exists, a reset link has been sent",
+    });
   } catch (error) {
     logger("Unexpected error in forgotPassword controller:", error);
     return res
@@ -334,13 +330,11 @@ export const verifyCodeOrResetToken = async (req: Request, res: Response) => {
         .json({ success: false, message: "Invalid or expired code or token" });
     }
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Code or reset token verified successfully",
-        data: { resetToken: user.reset_token },
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Code or reset token verified successfully",
+      data: { resetToken: user.reset_token },
+    });
   } catch (error) {
     logger("Unexpected error in verifyCodeOrResetToken controller:", error);
     return res

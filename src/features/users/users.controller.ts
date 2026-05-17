@@ -67,12 +67,10 @@ export const updateProfile = async (
     const safeBody = usersSchema.safeParse(req.body);
     if (!safeBody.success) {
       logger("Validation error in updateProfile:", safeBody.error);
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Invalid inputs for updating profile",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid inputs for updating profile",
+      });
     }
 
     const { email, firstName, lastName, phone, avatar } = safeBody.data;

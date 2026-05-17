@@ -14,13 +14,11 @@ export const getPromoBanners = async (req: Request, res: Response) => {
         .json({ success: false, message: "Failed to fetch promo banners" });
     }
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Promo banners fetched successfully",
-        data,
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Promo banners fetched successfully",
+      data,
+    });
   } catch (error) {
     logger("Error in PromoController:", error);
     return res
