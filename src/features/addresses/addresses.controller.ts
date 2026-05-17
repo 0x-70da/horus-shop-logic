@@ -131,18 +131,20 @@ export const updateAddress = async (
       isDefault,
     } = parsed.data;
 
+    const updatePayload = {
+      ...(fullName !== undefined ? { full_name: fullName } : {}),
+      ...(addressLine !== undefined ? { address_line: addressLine } : {}),
+      ...(city !== undefined ? { city } : {}),
+      ...(state !== undefined ? { state: state ?? null } : {}),
+      ...(country !== undefined ? { country } : {}),
+      ...(phone !== undefined ? { phone: phone ?? null } : {}),
+      ...(zipCode !== undefined ? { zip_code: zipCode ?? null } : {}),
+      ...(isDefault !== undefined ? { is_default: isDefault } : {}),
+    };
+
     const { data, error } = await supabase
       .from("addresses")
-      .update({
-        full_name: fullName,
-        address_line: addressLine,
-        city,
-        state: state ?? null,
-        country,
-        phone: phone ?? null,
-        zip_code: zipCode ?? null,
-        is_default: isDefault,
-      })
+      .update(updatePayload)
       .eq("id", addressId)
       .eq("user_id", userId) // الـ user يعدل بس العناوين بتاعته
       .select(

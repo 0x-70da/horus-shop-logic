@@ -27,7 +27,7 @@ export const getCart = async (req: Request, res: Response) => {
 
     const cartItems = data?.map((item) => {
       const price = item.products_with_price.price;
-      const currentPrice = item.products_with_price.current_price ?? price;
+      const currentPrice = item.products_with_price.current_price ?? price ?? 0;
       const variantPriceModifier = item.product_variants
         ? item.product_variants.price_modifier
         : 0;
