@@ -72,7 +72,7 @@ export const getProductReviews = async (
         pagination: {
           page,
           limit,
-          total:      count ?? 0,
+          total: count ?? 0,
           totalPages: Math.ceil((count ?? 0) / limit),
         },
       },
@@ -124,11 +124,11 @@ export const createReview = async (req: Request, res: Response) => {
       .from("reviews")
       .insert({
         product_id: productId,
-        user_id:    userId,
-        order_id:   orderId ?? null,
+        user_id: userId,
+        order_id: orderId ?? null,
         rating,
-        title:      title ?? null,
-        comment:    comment ?? null,
+        title: title ?? null,
+        comment: comment ?? null,
         verified,
       })
       .select(

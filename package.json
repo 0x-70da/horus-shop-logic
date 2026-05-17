@@ -7,6 +7,9 @@
     "start": "tsx src/server.ts",
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "lint": "prettier --check \"src/**/*.ts\"",
     "netlify": "netlify dev",
     "gen-types": "pnpm dlx supabase gen types typescript --project-id smgryhialvatoesvvnuy --schema public > src/types/database.types.ts"
   },
@@ -38,6 +41,7 @@
     "@types/node": "^25.2.0",
     "@types/nodemailer": "^8.0.0",
     "netlify-cli": "^26.0.2",
+    "prettier": "^3.8.3",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }

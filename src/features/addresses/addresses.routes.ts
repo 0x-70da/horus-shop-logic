@@ -12,10 +12,10 @@ import { authMiddleware } from "../../middlewares/auth.middleware.js";
 const router: ExpressRouter = Router();
 router.use(authMiddleware);
 
-router.get("/",                        getAddresses);
-router.post("/",                       createAddress);
-router.patch("/:addressId",            updateAddress);
-router.delete("/:addressId",           deleteAddress);
+router.get("/", getAddresses);
+router.post("/", createAddress);
+router.patch("/:addressId", updateAddress);
+router.delete("/:addressId", deleteAddress);
 router.patch("/:addressId/set-default", setDefaultAddress);
 
 export default router;

@@ -6,6 +6,10 @@ const router: express.Router = express.Router();
 
 router.use(authMiddleware);
 
-router.post("/stripe/webhook", express.raw({ type: "application/json" }), handleStripeWebhook);
+router.post(
+  "/stripe/webhook",
+  express.raw({ type: "application/json" }),
+  handleStripeWebhook,
+);
 
 export default router;

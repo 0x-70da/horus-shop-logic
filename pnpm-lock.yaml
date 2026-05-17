@@ -69,6 +69,9 @@ importers:
       netlify-cli:
         specifier: ^26.0.2
         version: 26.0.2(@types/node@25.2.0)(picomatch@4.0.4)
+      prettier:
+        specifier: ^3.8.3
+        version: 3.8.3
       tsx:
         specifier: ^4.21.0
         version: 4.21.0
@@ -3619,6 +3622,11 @@ packages:
   precond@0.2.3:
     resolution: {integrity: sha512-QCYG84SgGyGzqJ/vlMsxeXd/pgL/I94ixdNFyh1PusWmTCyVfPJjZ1K1jvHtsbfnXQs2TSkEP2fR7QiMZAnKFQ==}
     engines: {node: '>= 0.6'}
+
+  prettier@3.8.3:
+    resolution: {integrity: sha512-7igPTM53cGHMW8xWuVTydi2KO233VFiTNyF5hLJqpilHfmn8C8gPf+PS7dUT64YcXFbiMGZxS9pCSxL/Dxm/Jw==}
+    engines: {node: '>=14'}
+    hasBin: true
 
   pretty-ms@9.3.0:
     resolution: {integrity: sha512-gjVS5hOP+M3wMm5nmNOucbIrqudzs9v/57bWRHQWLYklXqoXKrVfYW2W9+glfGsqtPgpiz5WwyEEB+ksXIx3gQ==}
@@ -8473,6 +8481,8 @@ snapshots:
       - supports-color
 
   precond@0.2.3: {}
+
+  prettier@3.8.3: {}
 
   pretty-ms@9.3.0:
     dependencies:

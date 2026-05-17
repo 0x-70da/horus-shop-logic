@@ -23,19 +23,22 @@ export const createPaymentIntent = async ({
     metadata: {
       orderId,
       userId,
-    }
+    },
   });
 
   return {
     clientSecret: paymentIntent.client_secret!,
     paymentIntentId: paymentIntent.id,
-  }
-}
+  };
+};
 
-export const constructStripeWebhookEvent = (payload: Buffer, signature: string) => {
+export const constructStripeWebhookEvent = (
+  payload: Buffer,
+  signature: string,
+) => {
   return stripe.webhooks.constructEvent(
     payload,
     signature,
-    process.env.STRIPE_WEBHOOK_SECRET!
+    process.env.STRIPE_WEBHOOK_SECRET!,
   );
-}
+};

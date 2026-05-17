@@ -10,34 +10,49 @@ export const getProducts = async (
 ) => {
   try {
     const parsedQuery = getProductsQuerySchema.safeParse(req.query);
-    
+
     if (!parsedQuery.success) {
       logger("Invalid query parameters:", parsedQuery.error);
       return res.status(400).json({
         success: false,
-        message: parsedQuery.error.issues[0]?.message || "Invalid query parameters",
-      })
+        message:
+          parsedQuery.error.issues[0]?.message || "Invalid query parameters",
+      });
     }
 
-    const { category, subcategory, brand, minPrice, maxPrice, inStock, sortBy, sortOrder, page, limit } = parsedQuery.data;
+    const {
+      category,
+      subcategory,
+      brand,
+      minPrice,
+      maxPrice,
+      inStock,
+      sortBy,
+      sortOrder,
+      page,
+      limit,
+    } = parsedQuery.data;
 
     const offset = (page - 1) * limit;
 
     let query = supabase
       .from("products_with_price")
-      .select("*,categories(name),subcategories(name),brands(name),product_variants(*)", { count: "exact" })
+      .select(
+        "*,categories(name),subcategories(name),brands(name),product_variants(*)",
+        { count: "exact" },
+      )
       .range(offset, offset + limit - 1);
 
     if (category) {
-      query = query.eq("category_id", category); 
+      query = query.eq("category_id", category);
     }
 
     if (subcategory) {
-      query = query.eq("subcategory_id", subcategory); 
+      query = query.eq("subcategory_id", subcategory);
     }
 
     if (brand) {
-      query = query.eq("brand_id", brand); 
+      query = query.eq("brand_id", brand);
     }
 
     if (minPrice) {
@@ -83,33 +98,36 @@ export const getProducts = async (
     }
 
     if (!data || data.length === 0) {
-      return res
-        .status(200)
-        .json({
-          success: true,
-          message: "No products found",
-          data: {
-            products: [],
-            pagination: {
-              page: page,
-              limit: limit,
-              total: 0,
-              totalPages: 0,
-            },
+      return res.status(200).json({
+        success: true,
+        message: "No products found",
+        data: {
+          products: [],
+          pagination: {
+            page: page,
+            limit: limit,
+            total: 0,
+            totalPages: 0,
           },
-        });
+        },
+      });
     }
 
-    const isBestSeller = data.some(product => product.total_sold ? product.total_sold >= 100 : false);
-    const isNewArrival = data.some(product => {
+    const isBestSeller = data.some((product) =>
+      product.total_sold ? product.total_sold >= 100 : false,
+    );
+    const isNewArrival = data.some((product) => {
       const createdAt = new Date(product.created_at!);
       const now = new Date();
-      const diffInDays = (now.getTime() - createdAt.getTime()) / (1000 * 3600 * 24);
-      return diffInDays <= 30; 
+      const diffInDays =
+        (now.getTime() - createdAt.getTime()) / (1000 * 3600 * 24);
+      return diffInDays <= 30;
     });
-    const isFeatured = data.some(product => product.rating ? product.rating >= 4.5 : false);
+    const isFeatured = data.some((product) =>
+      product.rating ? product.rating >= 4.5 : false,
+    );
 
-    const products = data.map(product => ({
+    const products = data.map((product) => ({
       id: product.id,
       name: product.name,
       slug: product.slug,
@@ -139,34 +157,34 @@ export const getProducts = async (
       dealEndsAt: product.deal_ends_at,
       dealQuantity: product.deal_quantity,
       dealSoldCount: product.deal_sold_count,
-      variants: product.product_variants?.map(variant => ({
+      variants: product.product_variants?.map((variant) => ({
         id: variant.id,
         name: variant.name,
         productId: variant.product_id,
-        price: Number(variant.price_modifier + product.current_price || product.price),
+        price: Number(
+          variant.price_modifier + product.current_price || product.price,
+        ),
         stock: variant.stock,
         sku: variant.sku,
         attributes: variant.attributes,
         isActive: variant.is_active,
         createdAt: variant.created_at,
       })),
-    }))
+    }));
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Products fetched successfully",
-        data: {
-          products,
-          pagination: {
-            page: page,
-            limit: limit,
-            total: count ?? 0,
-            totalPages: Math.ceil((count ?? 0) / limit),
-          },
+    return res.status(200).json({
+      success: true,
+      message: "Products fetched successfully",
+      data: {
+        products,
+        pagination: {
+          page: page,
+          limit: limit,
+          total: count ?? 0,
+          totalPages: Math.ceil((count ?? 0) / limit),
         },
-      });
+      },
+    });
   } catch (error) {
     logger("Error in getProducts controller:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -182,7 +200,9 @@ export const getProductById = async (
 
     const { data, error } = await supabase
       .from("products_with_price")
-      .select("*,categories(name),subcategories(name),brands(name),product_variants(*),reviews(*)")
+      .select(
+        "*,categories(name),subcategories(name),brands(name),product_variants(*),reviews(*)",
+      )
       .eq("id", id)
       .maybeSingle();
 
@@ -226,7 +246,7 @@ export const getProductById = async (
       dealEndsAt: data.deal_ends_at,
       dealQuantity: data.deal_quantity,
       dealSoldCount: data.deal_sold_count,
-      reviews: data.reviews?.map(review => ({
+      reviews: data.reviews?.map((review) => ({
         id: review.id,
         productId: review.product_id,
         userId: review.user_id,
@@ -238,26 +258,26 @@ export const getProductById = async (
         verified: review.verified,
         createdAt: review.created_at,
       })),
-      variants: data.product_variants?.map(variant => ({
+      variants: data.product_variants?.map((variant) => ({
         id: variant.id,
         name: variant.name,
         productId: variant.product_id,
-        price: Number(variant.price_modifier + data.current_price || data.price),
+        price: Number(
+          variant.price_modifier + data.current_price || data.price,
+        ),
         stock: variant.stock,
         sku: variant.sku,
         attributes: variant.attributes,
         isActive: variant.is_active,
         createdAt: variant.created_at,
       })),
-    }
+    };
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Product fetched successfully",
-        data: product
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Product fetched successfully",
+      data: product,
+    });
   } catch (error) {
     logger("Error in getProductById controller:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });

@@ -46,8 +46,7 @@ export const getFlashDeals = async (req: Request, res: Response) => {
     const dealsWithPrice = deals
       ?.filter(
         (deal) =>
-          deal.deal_quantity === null ||
-          deal.sold_count < deal.deal_quantity,
+          deal.deal_quantity === null || deal.sold_count < deal.deal_quantity,
       )
       .map((deal) => {
         const product = deal.product as any;
@@ -56,15 +55,15 @@ export const getFlashDeals = async (req: Request, res: Response) => {
         );
 
         return {
-          id:               deal.id,
+          id: deal.id,
           discount_percent: deal.discount_percent,
-          end_date:         deal.end_date,
-          remaining:        deal.deal_quantity
-                              ? deal.deal_quantity - deal.sold_count
-                              : null,
+          end_date: deal.end_date,
+          remaining: deal.deal_quantity
+            ? deal.deal_quantity - deal.sold_count
+            : null,
           product: {
             ...product,
-            current_price:  dealPrice,
+            current_price: dealPrice,
             original_price: product.price,
           },
         };
