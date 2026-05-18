@@ -2,10 +2,15 @@ import type { CookieOptions, Response } from "express";
 import dotenv from "dotenv";
 dotenv.config();
 
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
 const BASE_COOKIE_OPTIONS: CookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict",
+  // Cross-site cookies (separate frontend/backend origins) require:
+  // SameSite=None + Secure in production.
+  secure: IS_PRODUCTION,
+  sameSite: IS_PRODUCTION ? "none" : "lax",
+  path: "/",
 };
 
 export const setAccessTokenCookie = (res: Response, token: string) => {
@@ -24,6 +29,6 @@ export const setRefreshTokenCookie = (res: Response, token: string) => {
 };
 
 export const clearAuthCookies = (res: Response) => {
-  res.clearCookie("access_token");
-  res.clearCookie("refresh_token" /*, { path: "/api/auth/refresh/" }*/);
+  res.clearCookie("access_token", BASE_COOKIE_OPTIONS);
+  res.clearCookie("refresh_token", BASE_COOKIE_OPTIONS);
 };
